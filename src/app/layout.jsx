@@ -1,15 +1,17 @@
 import "./globals.css";
+// Make sure the file in your components folder is named exactly AuthProvider.jsx (Capital A, Capital P)
+import AuthProvider from "../components/AuthProvider";
 
 export const metadata = {
-  title: "The Wheat | Operational System",
-  description: "Internal daily closing and inventory system",
+  title: "The Wheat ERP",
+  description: "Bakery Management and Gramasi System",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 text-gray-900 font-sans antialiased">
-        {children}
+      <body>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
