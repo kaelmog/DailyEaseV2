@@ -14,12 +14,11 @@ export default function DailyClosingApp() {
   const [ingredients, setIngredients] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [isReady, setIsReady] = useState(false);
-  
-  // NEW: Controls the 2-step UI flow
-  const [isReviewing, setIsReviewing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- AUTO-SAVE STATES ---
+  // --- UI STATE ---
+  const [isReviewing, setIsReviewing] = useState(false);
+
+  // --- AUTO-SAVE STATES (Blackout Protection) ---
   const [outletType, setOutletType, clearOutlet, outletHydrated] = useAutoSave(
     "wheat_outlet",
     "fresh_bake"
@@ -94,12 +93,7 @@ export default function DailyClosingApp() {
   };
 
   const getSisa = (product) => {
-    const data = inventory[product.id] || {
-      start: 0,
-      in: 0,
-      sold: 0,
-      waste: 0,
-    };
+    const data = inventory[product.id] || { start: 0, in: 0, sold: 0, waste: 0 };
     const shaping = product.is_base ? getShapingDeduction(product.id) : 0;
     return data.start + data.in - data.sold - data.waste - shaping;
   };
@@ -135,18 +129,63 @@ export default function DailyClosingApp() {
   }, [inventory, products, recipes]);
 
   const formatIDR = (num) =>
-    new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-    }).format(num || 0);
+    new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(num || 0);
 
-  // --- EXACT TEMPLATE GENERATOR ---
-  const generateReportText = () => {
-    const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const today = new Date().toLocaleDateString('id-ID', dateOptions);
-    const outletName = outletType === 'fresh_bake' ? 'The Wheat Cibubur' : 'The Wheat Fresh Market';
-    const outletNameUpper = outletName.toUpperCase();
+  // --- MANUAL LIST MAPPINGS ---
+  const frozenList = [
+    { label: "Butter Croissant", matchKeys: ["butter croissant", "croissant plain"] },
+    { label: "Gourmandise", matchKeys: ["gourmandise"] },
+    { label: "Mushroom", matchKeys: ["mushroom"] },
+    { label: "Pistachio Matcha", matchKeys: ["pistachio"] },
+    { label: "Egg&Corned", matchKeys: ["corn", "egg &"] },
+    { label: "Bolognese", matchKeys: ["bolognese"] },
+    { label: "Tape Cheese", matchKeys: ["tape"] },
+    { label: "Martabak Croissant", matchKeys: ["martabak"] },
+    { label: "Almond Croissant", matchKeys: ["almond"] },
+    { label: "Pain Au Chocola", matchKeys: ["pain au"] },
+    { label: "Matcha Kouign Aman", matchKeys: ["kouign"] },
+    { label: "Cheese Cake Slice", matchKeys: ["cheese cake", "brunth"] },
+    { label: "Ketupat Rendang", matchKeys: ["ketupat"] }
+  ];
 
+  const displayList = [
+    { label: "Butter Croissant", matchKeys: ["butter croissant", "croissant plain"] },
+    { label: "Gourmandise", matchKeys: ["gourmandise"] },
+    { label: "Mushroom", matchKeys: ["mushroom"] },
+    { label: "Pistachio Matcha", matchKeys: ["pistachio"] },
+    { label: "Egg&Corned", matchKeys: ["corn", "egg &"] },
+    { label: "Bolognese", matchKeys: ["bolognese"] },
+    { label: "Tape Cheese", matchKeys: ["tape"] },
+    { label: "Burnt Cheese Cake", matchKeys: ["cheese cake", "brunth"] },
+    { label: "Pain Au Chocola", matchKeys: ["pain au"] },
+    { label: "Matcha Kouign Aman", matchKeys: ["kouign"] },
+    { label: "Royal Egg Tart", matchKeys: ["tart"] },
+    { label: "Portuguese Quiche", matchKeys: ["quiche"] },
+    { label: "Almond Croissant", matchKeys: ["almond"] },
+    { label: "Martabak Croissant", matchKeys: ["martabak"] },
+    { label: "Croissant Cereal", matchKeys: ["cereal"] },
+    { label: "Bagelen", matchKeys: ["bagel"] },
+    { label: "Bloeder Original", matchKeys: ["bloeder original"] },
+    { label: "Bloeder Cheese", matchKeys: ["bloeder cheese"] },
+    { label: "Bloeder Chococheese", matchKeys: ["chococheese"] },
+    { label: "Bloeder Chocolate", matchKeys: ["bloeder choco", "bloeder cok"] },
+    { label: "Sable Cookies Chocolate", matchKeys: ["sable cookies chocolate", "sable choco"] },
+    { label: "Sable Cookies Vanilla", matchKeys: ["sable cookies vanilla", "sable van"] },
+    { label: "Shiopan", matchKeys: ["shiopan"] },
+    { label: "Ketupat Rendang", matchKeys: ["ketupat"] }
+  ];
+
+  const findProduct = (item) => products.find(prod => 
+    item.matchKeys.some(key => prod.name.toLowerCase().includes(key.toLowerCase()))
+  );
+
+  // --- TEXT GENERATORS ---
+  const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const today = new Date().toLocaleDateString('id-ID', dateOptions);
+  const outletName = outletType === 'fresh_bake' ? 'The Wheat Cibubur' : 'The Wheat Fresh Market';
+  const outletNameUpper = outletName.toUpperCase();
+
+  const generateSalesReport = () => {
     let text = `*Sales Report closing Outlet ${outletName} hari ${today}*\n\n`;
     text += `1. Cash\t: ${formatIDR(sales.cash)}\n`;
     text += `2. Qris\t: ${formatIDR(sales.qris)}\n`;
@@ -157,7 +196,7 @@ export default function DailyClosingApp() {
     text += `7. Credit card\t: ${formatIDR(sales.credit)}\n`;
     text += `8. Transfer\t: ${formatIDR(sales.transfer)}\n`;
     text += `9. Voucher\t: ${formatIDR(sales.voucher)}\n`;
-    text += `10. Transfer outstanding\t: ${formatIDR(sales.transfer_outstanding)}\n`;
+    text += `10. Transfer outstanding\t: ${formatIDR(sales.transfer_outstanding)}\n\n`;
     text += `*TOTAL*\t: ${formatIDR(totalRevenue)}\n\n\n`;
 
     text += `*Sales Report Produk ${outletName} hari ${today}*\n\n`;
@@ -166,64 +205,22 @@ export default function DailyClosingApp() {
     });
     text += `Promo Bundling : Rp -\n`;
     text += `Hampers : Rp -\n`;
-    text += `PB1 : Rp -\n\nTerima kasih 🙏\n\n\n`;
+    text += `PB1 : Rp -\n\nTerima kasih 🙏`;
+    return text;
+  };
 
-    const frozenList = [
-      { label: "Butter Croissant", matchKeys: ["butter croissant", "croissant plain"] },
-      { label: "Gourmandise", matchKeys: ["gourmandise"] },
-      { label: "Mushroom", matchKeys: ["mushroom"] },
-      { label: "Pistachio Matcha", matchKeys: ["pistachio"] },
-      { label: "Egg&Corned", matchKeys: ["corn", "egg &"] },
-      { label: "Bolognese", matchKeys: ["bolognese"] },
-      { label: "Tape Cheese", matchKeys: ["tape"] },
-      { label: "Martabak Croissant", matchKeys: ["martabak"] },
-      { label: "Almond Croissant", matchKeys: ["almond"] },
-      { label: "Pain Au Chocola", matchKeys: ["pain au"] },
-      { label: "Matcha Kouign Aman", matchKeys: ["kouign"] },
-      { label: "Cheese Cake Slice", matchKeys: ["cheese cake", "brunth"] },
-      { label: "Ketupat Rendang", matchKeys: ["ketupat"] }
-    ];
-
-    const displayList = [
-      { label: "Butter Croissant", matchKeys: ["butter croissant", "croissant plain"] },
-      { label: "Gourmandise", matchKeys: ["gourmandise"] },
-      { label: "Mushroom", matchKeys: ["mushroom"] },
-      { label: "Pistachio Matcha", matchKeys: ["pistachio"] },
-      { label: "Egg&Corned", matchKeys: ["corn", "egg &"] },
-      { label: "Bolognese", matchKeys: ["bolognese"] },
-      { label: "Tape Cheese", matchKeys: ["tape"] },
-      { label: "Burnt Cheese Cake", matchKeys: ["cheese cake", "brunth"] },
-      { label: "Pain Au Chocola", matchKeys: ["pain au"] },
-      { label: "Matcha Kouign Aman", matchKeys: ["kouign"] },
-      { label: "Royal Egg Tart", matchKeys: ["tart"] },
-      { label: "Portuguese Quiche", matchKeys: ["quiche"] },
-      { label: "Almond Croissant", matchKeys: ["almond"] },
-      { label: "Martabak Croissant", matchKeys: ["martabak"] },
-      { label: "Croissant Cereal", matchKeys: ["cereal"] },
-      { label: "Bagelen", matchKeys: ["bagel"] },
-      { label: "Bloeder Original", matchKeys: ["bloeder original"] },
-      { label: "Bloeder Cheese", matchKeys: ["bloeder cheese"] },
-      { label: "Bloeder Chococheese", matchKeys: ["chococheese"] },
-      { label: "Bloeder Chocolate", matchKeys: ["bloeder choco", "bloeder cok"] },
-      { label: "Sable Cookies Chocolate", matchKeys: ["sable cookies chocolate", "sable choco"] },
-      { label: "Sable Cookies Vanilla", matchKeys: ["sable cookies vanilla", "sable van"] },
-      { label: "Shiopan", matchKeys: ["shiopan"] },
-      { label: "Ketupat Rendang", matchKeys: ["ketupat"] }
-    ];
-
-    const findProduct = (item) => products.find(prod => 
-      item.matchKeys.some(key => prod.name.toLowerCase().includes(key.toLowerCase()))
-    );
-
-    text += `*PENJUALAN PRODUK ${outletNameUpper}*\n${today}\n\n`;
+  const generateProductSales = () => {
+    let text = `*PENJUALAN PRODUK ${outletNameUpper}*\n${today}\n\n`;
     displayList.forEach(item => {
       const p = findProduct(item);
       const data = p ? (inventory[p.id] || { sold: 0 }) : { sold: 0 };
       text += `* ${item.label.toLowerCase()} : ${data.sold || 0}\n`;
     });
-    text += `\n\n`;
+    return text;
+  };
 
-    text += `*PRODUK FROZEN DOUGH ${outletNameUpper}*\n${today}\n\n`;
+  const generateFrozenDisplay = () => {
+    let text = `*PRODUK FROZEN DOUGH ${outletNameUpper}*\n${today}\n\n`;
     frozenList.forEach(item => {
       const p = findProduct(item);
       const data = p ? (inventory[p.id] || { start: 0 }) : { start: 0 };
@@ -231,7 +228,6 @@ export default function DailyClosingApp() {
     });
     text += `\n\n`;
 
-    // Solved: Only prints "In"
     text += `*PRODUK JADI / DISPLAY ${outletNameUpper}*\n\n`;
     displayList.forEach(item => {
       const p = findProduct(item);
@@ -249,30 +245,17 @@ export default function DailyClosingApp() {
         }
       });
     }
-
     return text;
   };
 
-  const submitShift = async () => {
-    if (!confirm("Submit final shift report to database?")) return;
-    setIsSubmitting(true);
+  // --- ACTIONS ---
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    alert("Copied to clipboard!");
+  };
 
-    const reportData = {
-      outlet_type: outletType,
-      sales_data: sales,
-      inventory_data: inventory,
-      gramasi_data: usedIngredients,
-    };
-
-    const { error } = await supabase.from("shift_reports").insert([reportData]);
-    setIsSubmitting(false);
-
-    if (error) {
-      alert("Error saving shift: " + error.message);
-    } else {
-      navigator.clipboard.writeText(generateReportText());
-      alert("Shift saved to database! WhatsApp report copied to clipboard.");
-    }
+  const handleShareWA = (text) => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   if (!isReady || !invHydrated || !salesHydrated || !outletHydrated) {
@@ -284,28 +267,54 @@ export default function DailyClosingApp() {
   }
 
   // ==========================================
-  // REVIEW SCREEN (STEP 2)
+  // REVIEW SCREEN (STEP 2: 3 Separate Templates)
   // ==========================================
   if (isReviewing) {
     return (
       <div className="max-w-md mx-auto min-h-screen bg-gray-100 pb-28">
-        <div className="bg-gray-900 text-white p-6 shadow-md mb-6">
-          <h1 className="text-2xl font-extrabold tracking-tight">Review Report</h1>
-          <p className="text-gray-400 text-sm">Verify the data before submitting.</p>
+        <div className="bg-gray-900 text-white p-6 shadow-md mb-2">
+          <h1 className="text-2xl font-extrabold tracking-tight">Review & Share</h1>
+          <p className="text-gray-400 text-sm">Copy or share directly to WhatsApp.</p>
         </div>
-        <div className="px-4">
-          <textarea 
-            readOnly 
-            value={generateReportText()} 
-            className="w-full h-[32rem] p-4 text-xs font-mono bg-white border border-gray-300 rounded-lg shadow-inner focus:outline-none"
-          />
+        
+        <div className="space-y-4 px-4 pt-4">
+          
+          {/* Box 1: Sales Report */}
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+            <h3 className="font-bold text-gray-800 mb-2">1. Sales Report</h3>
+            <textarea readOnly value={generateSalesReport()} className="w-full h-40 p-2 text-xs font-mono bg-gray-50 border border-gray-300 rounded focus:outline-none mb-3" />
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => handleCopy(generateSalesReport())} className="flex-1 text-xs py-2">📋 Copy</Button>
+              <Button variant="primary" onClick={() => handleShareWA(generateSalesReport())} className="flex-1 text-xs py-2 bg-green-600 hover:bg-green-700">💬 Share WA</Button>
+            </div>
+          </div>
+
+          {/* Box 2: Product Sales */}
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+            <h3 className="font-bold text-gray-800 mb-2">2. Product Sales Amount</h3>
+            <textarea readOnly value={generateProductSales()} className="w-full h-40 p-2 text-xs font-mono bg-gray-50 border border-gray-300 rounded focus:outline-none mb-3" />
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => handleCopy(generateProductSales())} className="flex-1 text-xs py-2">📋 Copy</Button>
+              <Button variant="primary" onClick={() => handleShareWA(generateProductSales())} className="flex-1 text-xs py-2 bg-green-600 hover:bg-green-700">💬 Share WA</Button>
+            </div>
+          </div>
+
+          {/* Box 3: Frozen & Display */}
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+            <h3 className="font-bold text-gray-800 mb-2">3. Frozen & Display (Leftover)</h3>
+            <textarea readOnly value={generateFrozenDisplay()} className="w-full h-40 p-2 text-xs font-mono bg-gray-50 border border-gray-300 rounded focus:outline-none mb-3" />
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => handleCopy(generateFrozenDisplay())} className="flex-1 text-xs py-2">📋 Copy</Button>
+              <Button variant="primary" onClick={() => handleShareWA(generateFrozenDisplay())} className="flex-1 text-xs py-2 bg-green-600 hover:bg-green-700">💬 Share WA</Button>
+            </div>
+          </div>
+
         </div>
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex gap-3 max-w-md mx-auto shadow-md">
-          <Button variant="secondary" onClick={() => setIsReviewing(false)} className="w-1/3 text-xs">
-            Edit Data
-          </Button>
-          <Button variant="primary" onClick={submitShift} isLoading={isSubmitting} className="w-2/3">
-            Copy & Submit DB
+
+        {/* Floating Back Button */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex justify-center max-w-md mx-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+          <Button variant="secondary" onClick={() => setIsReviewing(false)} className="w-full py-3 shadow-md font-bold text-gray-700">
+            ← Back to Edit
           </Button>
         </div>
       </div>
