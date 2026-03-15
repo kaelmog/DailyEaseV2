@@ -169,6 +169,92 @@ export default function DailyClosingApp() {
     text += `Hampers : Rp -\n`;
     text += `PB1 : Rp -\n\nTerima kasih 🙏\n\n\n`;
 
+    // === TEMPLATE MAPPING LISTS (Dictates EXACT Sort Order) ===
+    const frozenList = [
+      { label: "Butter Croissant", matchKeys: ["butter croissant", "croissant plain"] },
+      { label: "Gourmandise", matchKeys: ["gourmandise"] },
+      { label: "Mushroom", matchKeys: ["mushroom"] },
+      { label: "Pistachio Matcha", matchKeys: ["pistachio"] },
+      { label: "Egg&Corned", matchKeys: ["corn", "egg &"] },
+      { label: "Bolognese", matchKeys: ["bolognese"] },
+      { label: "Tape Cheese", matchKeys: ["tape"] },
+      { label: "Martabak Croissant", matchKeys: ["martabak"] },
+      { label: "Almond Croissant", matchKeys: ["almond"] },
+      { label: "Pain Au Chocola", matchKeys: ["pain au"] },
+      { label: "Matcha Kouign Aman", matchKeys: ["kouign"] },
+      { label: "Cheese Cake Slice", matchKeys: ["cheese cake", "brunth"] },
+      { label: "Ketupat Rendang", matchKeys: ["ketupat"] }
+    ];
+
+    const displayList = [
+      { label: "Butter Croissant", matchKeys: ["butter croissant", "croissant plain"] },
+      { label: "Gourmandise", matchKeys: ["gourmandise"] },
+      { label: "Mushroom", matchKeys: ["mushroom"] },
+      { label: "Pistachio Matcha", matchKeys: ["pistachio"] },
+      { label: "Egg&Corned", matchKeys: ["corn", "egg &"] },
+      { label: "Bolognese", matchKeys: ["bolognese"] },
+      { label: "Tape Cheese", matchKeys: ["tape"] },
+      { label: "Burnt Cheese Cake", matchKeys: ["cheese cake", "brunth"] },
+      { label: "Pain Au Chocola", matchKeys: ["pain au"] },
+      { label: "Matcha Kouign Aman", matchKeys: ["kouign"] },
+      { label: "Royal Egg Tart", matchKeys: ["tart"] },
+      { label: "Portuguese Quiche", matchKeys: ["quiche"] },
+      { label: "Almond Croissant", matchKeys: ["almond"] },
+      { label: "Martabak Croissant", matchKeys: ["martabak"] },
+      { label: "Croissant Cereal", matchKeys: ["cereal"] },
+      { label: "Bagelen", matchKeys: ["bagel"] },
+      { label: "Bloeder Original", matchKeys: ["bloeder original"] },
+      { label: "Bloeder Cheese", matchKeys: ["bloeder cheese"] },
+      { label: "Bloeder Chococheese", matchKeys: ["chococheese"] },
+      { label: "Bloeder Chocolate", matchKeys: ["bloeder choco", "bloeder cok"] },
+      { label: "Sable Cookies Chocolate", matchKeys: ["sable cookies chocolate", "sable choco"] },
+      { label: "Sable Cookies Vanilla", matchKeys: ["sable cookies vanilla", "sable van"] },
+      { label: "Shiopan", matchKeys: ["shiopan"] },
+      { label: "Ketupat Rendang", matchKeys: ["ketupat"] }
+    ];
+
+    const findProduct = (item) => products.find(prod => 
+      item.matchKeys.some(key => prod.name.toLowerCase().includes(key.toLowerCase()))
+    );
+
+    // 3. PENJUALAN PRODUK (Sold amounts)
+    text += `*PENJUALAN PRODUK ${outletNameUpper}*\n${today}\n\n`;
+    displayList.forEach(item => {
+      const p = findProduct(item);
+      const data = p ? (inventory[p.id] || { sold: 0 }) : { sold: 0 };
+      text += `* ${item.label.toLowerCase()} : ${data.sold || 0}\n`;
+    });
+    text += `\n\n`;
+
+    // 4. FROZEN DOUGH LEFTOVER (Uses 'Start' input as Frozen stock)
+    text += `*PRODUK FROZEN DOUGH ${outletNameUpper}*\n${today}\n\n`;
+    frozenList.forEach(item => {
+      const p = findProduct(item);
+      const data = p ? (inventory[p.id] || { start: 0 }) : { start: 0 };
+      text += `-${item.label} = ${data.start || 0}\n`;
+    });
+    text += `\n\n`;
+
+    // 5. DISPLAY LEFTOVER (Calculated Sisa)
+    text += `*PRODUK JADI / DISPLAY ${outletNameUpper}*\n\n`;
+    displayList.forEach(item => {
+      const p = findProduct(item);
+      const sisa = p ? getSisa(p) : 0;
+      text += `-${item.label} = ${sisa}\n`;
+    });
+
+    // 6. GRAMASI
+    const usedIngKeys = Object.keys(usedIngredients);
+    if (usedIngKeys.length > 0) {
+      text += `\n\n*⚖️ PENGGUNAAN BAHAN (GRAMASI)*\n`;
+      usedIngKeys.forEach((ingId) => {
+        const ing = ingredients.find((i) => i.id === ingId);
+        if (ing) {
+          text += `- ${ing.name}: ${usedIngredients[ingId]} ${ing.unit}\n`;
+        }
+      });
+    }
+
     return text;
   };
 
