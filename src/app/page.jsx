@@ -144,7 +144,7 @@ export default function DailyClosingApp() {
     { label: "Almond Croissant", matchKeys: ["almond"] },
     { label: "Pain Au Chocola", matchKeys: ["pain au"] },
     { label: "Matcha Kouign Aman", matchKeys: ["kouign"] },
-    { label: "Cheese Cake Slice", matchKeys: ["cheese cake", "brunth"] },
+    { label: "Cheese Cake Slice", matchKeys: ["cheese cake slice"] },
     { label: "Ketupat Rendang", matchKeys: ["ketupat"] }
   ];
 
@@ -156,7 +156,7 @@ export default function DailyClosingApp() {
     { label: "Egg&Corned", matchKeys: ["corn", "egg &"] },
     { label: "Bolognese", matchKeys: ["bolognese"] },
     { label: "Tape Cheese", matchKeys: ["tape"] },
-    { label: "Burnt Cheese Cake", matchKeys: ["cheese cake", "brunth"] },
+    { label: "Burnt Cheese Cake", matchKeys: ["cheese cake", "burnt"] },
     { label: "Pain Au Chocola", matchKeys: ["pain au"] },
     { label: "Matcha Kouign Aman", matchKeys: ["kouign"] },
     { label: "Royal Egg Tart", matchKeys: ["tart"] },
