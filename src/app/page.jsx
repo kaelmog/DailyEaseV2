@@ -30,10 +30,14 @@ export default function DailyClosingApp() {
     {
       cash: 0,
       qris: 0,
-      edc: 0,
+      credit: 0,
+      debit: 0,
       grabfood: 0,
       gofood: 0,
       shopeefood: 0,
+      transfer: 0,
+      transfer_outstanding: 0,
+      voucher: 0,
       expenses: 0,
       expenseNote: "",
     },
@@ -101,10 +105,14 @@ export default function DailyClosingApp() {
     return (
       (sales.cash || 0) +
       (sales.qris || 0) +
-      (sales.edc || 0) +
+      (sales.credit || 0) +
+      (sales.debit || 0) +
       (sales.grabfood || 0) +
       (sales.gofood || 0) +
-      (sales.shopeefood || 0)
+      (sales.shopeefood || 0) +
+      (sales.transfer || 0) +
+      (sales.voucher || 0) +
+      (sales.transfer_outstanding || 0)
     );
   }, [sales]);
 
@@ -131,32 +139,61 @@ export default function DailyClosingApp() {
       currency: "IDR",
     }).format(num || 0);
 
-  const generateReportText = () => {
-    let text = `*LAPORAN CLOSING SHIFT*\nTanggal: ${new Date().toLocaleDateString("id-ID")}\nOutlet: ${outletType === "fresh_bake" ? "Fresh Bake" : "Frozen Goods"}\nStaff: ${user?.username || "Admin"}\n\n`;
+    const generateReportText = () => {
+    // Generate Indonesian date format (e.g., Kamis, 12 Maret 2026)
+    const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const today = new Date().toLocaleDateString('id-ID', dateOptions);
+    const outletName = currentOutlet?.name || 'The Wheat';
+    const outletNameUpper = outletName.toUpperCase();
 
-    text += `*💰 FINANCIAL & SALES*\n`;
-    text += `- Cash: ${formatIDR(sales.cash)}\n- QRIS: ${formatIDR(sales.qris)}\n- EDC: ${formatIDR(sales.edc)}\n`;
-    text += `- GrabFood: ${formatIDR(sales.grabfood)}\n- GoFood: ${formatIDR(sales.gofood)}\n- ShopeeFood: ${formatIDR(sales.shopeefood)}\n`;
-    text += `- Pengeluaran: ${formatIDR(sales.expenses)} ${sales.expenseNote ? `(${sales.expenseNote})` : ""}\n`;
-    text += `*TOTAL REVENUE: ${formatIDR(totalRevenue)}*\n\n`;
+    // 1. SALES REPORT CLOSING
+    let text = `*Sales Report closing Outlet ${outletName} hari ${today}*\n\n`;
+    text += `1. Cash\t: ${formatIDR(sales.cash)}\n`;
+    text += `2. Qris\t: ${formatIDR(sales.qris)}\n`;
+    text += `3. Grabfood\t: ${formatIDR(sales.grabfood)}\n`;
+    text += `4. Gofood\t: ${formatIDR(sales.gofood)}\n`;
+    text += `5. Shopeefood\t: ${formatIDR(sales.shopeefood)}\n`;
+    text += `6. Debit\t: ${formatIDR(sales.edc)}\n`; // Mapped EDC state to Debit
+    text += `7. Credit card\t: Rp -\n`;
+    text += `8. Transfer\t: Rp -\n`;
+    text += `9. Voucher\t: Rp -\n`;
+    text += `10. Transfer oustanding\t: Rp -\n\n`;
+    text += `*TOTAL*\t: ${formatIDR(totalRevenue)}\n\n\n`;
 
-    text += `*📦 INVENTORY PRODUK*\n`;
-    categories.forEach((cat) => {
-      const catProds = products.filter((p) => p.category_id === cat.id);
-      if (catProds.length === 0) return;
-
-      text += `\n[${cat.name.toUpperCase()}]\n`;
-      catProds.forEach((p) => {
-        const data = inventory[p.id] || { start: 0, in: 0, sold: 0, waste: 0 };
-        const sisa = getSisa(p);
-        const shaping = p.is_base ? getShapingDeduction(p.id) : 0;
-
-        text += `- ${p.name}: Sold ${data.sold === 0 ? "-" : data.sold} | Sisa ${sisa}`;
-        if (shaping > 0) text += ` (Shaping: -${shaping})`;
-        if (data.waste > 0) text += ` (Waste: -${data.waste})`;
-        text += `\n`;
-      });
+    // 2. SALES REPORT PRODUK (Categories dynamically pulled from DB)
+    text += `*Sales Report Produk ${outletName} hari ${today}*\n\n`;
+    categories.forEach(cat => {
+      text += `${cat.name} : Rp -\n`;
     });
+    text += `Promo Bundling : Rp -\n`;
+    text += `Hampers : Rp -\n`;
+    text += `PB1 : Rp -\n\nTerima kasih 🙏\n\n\n`;
+
+    // 3. PENJUALAN PRODUK (Sold amounts)
+    text += `*PENJUALAN PRODUK ${outletNameUpper}*\n${today}\n\n`;
+    activeProducts.forEach(p => {
+      const data = inventory[p.id] || { sold: 0 };
+      text += `* ${p.name.toLowerCase()} : ${data.sold || 0}\n`;
+    });
+    text += `\n\n`;
+
+    // 4. FROZEN DOUGH LEFTOVER (Uses 'Start' input as Frozen stock)
+    text += `*PRODUK FROZEN DOUGH ${outletNameUpper}*\n${today}\n\n`;
+    activeProducts.forEach(p => {
+      const data = inventory[p.id] || { start: 0 };
+      text += `-${p.name} = ${data.start || 0}\n`;
+    });
+    text += `\n\n`;
+
+    // 5. DISPLAY LEFTOVER (Calculated Sisa)
+    text += `*PRODUK JADI / DISPLAY ${outletNameUpper}*\n\n`;
+    activeProducts.forEach(p => {
+      const sisa = getSisa(p);
+      text += `-${p.name} = ${sisa}\n`;
+    });
+
+    return text;
+  };
 
     const usedIngKeys = Object.keys(usedIngredients);
     if (usedIngKeys.length > 0) {
