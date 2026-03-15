@@ -153,11 +153,11 @@ export default function DailyClosingApp() {
     text += `3. Grabfood\t: ${formatIDR(sales.grabfood)}\n`;
     text += `4. Gofood\t: ${formatIDR(sales.gofood)}\n`;
     text += `5. Shopeefood\t: ${formatIDR(sales.shopeefood)}\n`;
-    text += `6. Debit\t: ${formatIDR(sales.edc)}\n`; // Mapped EDC state to Debit
-    text += `7. Credit card\t: Rp -\n`;
-    text += `8. Transfer\t: Rp -\n`;
-    text += `9. Voucher\t: Rp -\n`;
-    text += `10. Transfer oustanding\t: Rp -\n\n`;
+    text += `6. Debit\t: ${formatIDR(sales.debit)}\n`; // Mapped EDC state to Debit
+    text += `7. Credit card\t: ${formatIDR(sales.credit)}\n`;
+    text += `8. Transfer\t: ${formatIDR(sales.transfer)}\n`;
+    text += `9. Voucher\t: ${formatIDR(sales.voucher)}\n`;
+    text += `10. Transfer oustanding\t: ${formatIDR(sales.transfer_outstanding)}\n`;
     text += `*TOTAL*\t: ${formatIDR(totalRevenue)}\n\n\n`;
 
     // 2. SALES REPORT PRODUK (Categories dynamically pulled from DB)
@@ -237,7 +237,7 @@ export default function DailyClosingApp() {
   if (!isReady || !invHydrated || !salesHydrated || !outletHydrated) {
     return (
       <div className="min-h-screen flex items-center justify-center font-bold text-gray-500">
-        Closing ga harus ribet ;)...
+        Loading bentar...
       </div>
     );
   }
@@ -250,7 +250,7 @@ export default function DailyClosingApp() {
           DailyEase Shift
         </h1>
         <p className="text-blue-200 text-sm mb-4">
-          Input real-time stock and sales.
+          Closing ga harus ribet ;)
         </p>
         <UniversalInput
           type="select"
