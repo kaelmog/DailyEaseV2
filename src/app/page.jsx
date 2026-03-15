@@ -182,7 +182,7 @@ export default function DailyClosingApp() {
       { label: "Almond Croissant", matchKeys: ["almond"] },
       { label: "Pain Au Chocola", matchKeys: ["pain au"] },
       { label: "Matcha Kouign Aman", matchKeys: ["kouign"] },
-      { label: "Cheese Cake Slice", matchKeys: ["cheese cake slice", "burnt"] },
+      { label: "Cheese Cake Slice", matchKeys: ["cheese cake", "brunth"] },
       { label: "Ketupat Rendang", matchKeys: ["ketupat"] }
     ];
 
@@ -194,7 +194,7 @@ export default function DailyClosingApp() {
       { label: "Egg&Corned", matchKeys: ["corn", "egg &"] },
       { label: "Bolognese", matchKeys: ["bolognese"] },
       { label: "Tape Cheese", matchKeys: ["tape"] },
-      { label: "Burnt Cheese Cake", matchKeys: ["cheese cake", "burnt"] },
+      { label: "Burnt Cheese Cake", matchKeys: ["cheese cake", "brunth"] },
       { label: "Pain Au Chocola", matchKeys: ["pain au"] },
       { label: "Matcha Kouign Aman", matchKeys: ["kouign"] },
       { label: "Royal Egg Tart", matchKeys: ["tart"] },
@@ -235,13 +235,25 @@ export default function DailyClosingApp() {
     });
     text += `\n\n`;
 
-        // 5. DISPLAY LEFTOVER (Uses 'In' input directly)
+    // 5. DISPLAY LEFTOVER (Uses 'In' input directly, no calculation)
     text += `*PRODUK JADI / DISPLAY ${outletNameUpper}*\n\n`;
     displayList.forEach(item => {
       const p = findProduct(item);
       const data = p ? (inventory[p.id] || { in: 0 }) : { in: 0 };
       text += `-${item.label} = ${data.in || 0}\n`;
     });
+
+    // 6. GRAMASI
+    const usedIngKeys = Object.keys(usedIngredients);
+    if (usedIngKeys.length > 0) {
+      text += `\n\n*⚖️ PENGGUNAAN BAHAN (GRAMASI)*\n`;
+      usedIngKeys.forEach((ingId) => {
+        const ing = ingredients.find((i) => i.id === ingId);
+        if (ing) {
+          text += `- ${ing.name}: ${usedIngredients[ingId]} ${ing.unit}\n`;
+        }
+      });
+    }
 
     return text;
   };
