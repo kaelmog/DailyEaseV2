@@ -273,6 +273,12 @@ export default function DailyClosingApp() {
               value={sales.cash}
               onChange={(v) => handleSalesInput("cash", v)}
             />
+            <UniversalInput
+              type="currency"
+              label="Debit"
+              value={sales.debit}
+              onChange={(v) => handleSalesInput("debit", v)}
+            />
             <div className="grid grid-cols-2 gap-3">
               <UniversalInput
                 type="currency"
