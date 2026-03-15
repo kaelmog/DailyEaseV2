@@ -243,18 +243,6 @@ export default function DailyClosingApp() {
       text += `-${item.label} = ${sisa}\n`;
     });
 
-    // 6. GRAMASI
-    const usedIngKeys = Object.keys(usedIngredients);
-    if (usedIngKeys.length > 0) {
-      text += `\n\n*⚖️ PENGGUNAAN BAHAN (GRAMASI)*\n`;
-      usedIngKeys.forEach((ingId) => {
-        const ing = ingredients.find((i) => i.id === ingId);
-        if (ing) {
-          text += `- ${ing.name}: ${usedIngredients[ingId]} ${ing.unit}\n`;
-        }
-      });
-    }
-
     return text;
   };
 
