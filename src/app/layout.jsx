@@ -3,8 +3,8 @@ import "./globals.css";
 import AuthProvider from "../components/AuthProvider";
 
 export const metadata = {
-  title: "The Wheat ERP",
-  description: "Bakery Management and Gramasi System",
+  title: "DailyEase TW",
+  description: "Closing harian jadi lebih mudah",
 };
 
 export default function RootLayout({ children }) {
