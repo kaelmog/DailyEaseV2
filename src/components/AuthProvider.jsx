@@ -64,7 +64,7 @@ export default function AuthProvider({ children }) {
   if (isChecking) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center font-bold text-gray-500">
-        Loading ERP...
+        Loading bentar...
       </div>
     );
   }
@@ -75,7 +75,7 @@ export default function AuthProvider({ children }) {
       <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
         <div className="w-full max-w-md">
           <Card
-            title="The Wheat ERP"
+            title="DailyEase TW"
             subtitle="Please login to access the system."
           >
             <form onSubmit={handleLogin} className="space-y-4">
@@ -89,19 +89,19 @@ export default function AuthProvider({ children }) {
                 value={username}
                 onChange={setUsername}
                 required
-                placeholder="e.g., Kaelm"
+                placeholder="Usernane"
               />
 
               <div className="flex flex-col gap-1 w-full">
                 <label className="text-sm font-semibold text-gray-700">
-                  PIN
+                  Password
                 </label>
                 <input
                   type="password"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
                   required
-                  placeholder="Enter PIN"
+                  placeholder="Enter Password"
                   className="w-full p-2 border rounded-md font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white text-gray-900"
                 />
               </div>
@@ -112,7 +112,7 @@ export default function AuthProvider({ children }) {
                 className="w-full py-3 mt-2"
                 isLoading={isLoading}
               >
-                Access System
+                Login
               </Button>
             </form>
           </Card>
