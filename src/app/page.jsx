@@ -169,41 +169,6 @@ export default function DailyClosingApp() {
     text += `Hampers : Rp -\n`;
     text += `PB1 : Rp -\n\nTerima kasih 🙏\n\n\n`;
 
-    // 3. PENJUALAN PRODUK (Sold amounts)
-    text += `*PENJUALAN PRODUK ${outletNameUpper}*\n${today}\n\n`;
-    products.forEach(p => {
-      const data = inventory[p.id] || { sold: 0 };
-      text += `* ${p.name.toLowerCase()} : ${data.sold || 0}\n`;
-    });
-    text += `\n\n`;
-
-    // 4. FROZEN DOUGH LEFTOVER (Uses 'Start' input as Frozen stock)
-    text += `*PRODUK FROZEN DOUGH ${outletNameUpper}*\n${today}\n\n`;
-    products.forEach(p => {
-      const data = inventory[p.id] || { start: 0 };
-      text += `-${p.name} = ${data.start || 0}\n`;
-    });
-    text += `\n\n`;
-
-    // 5. DISPLAY LEFTOVER (Calculated Sisa)
-    text += `*PRODUK JADI / DISPLAY ${outletNameUpper}*\n\n`;
-    products.forEach(p => {
-      const sisa = getSisa(p);
-      text += `-${p.name} = ${sisa}\n`;
-    });
-
-    // 6. GRAMASI
-    const usedIngKeys = Object.keys(usedIngredients);
-    if (usedIngKeys.length > 0) {
-      text += `\n\n*⚖️ PENGGUNAAN BAHAN (GRAMASI)*\n`;
-      usedIngKeys.forEach((ingId) => {
-        const ing = ingredients.find((i) => i.id === ingId);
-        if (ing) {
-          text += `- ${ing.name}: ${usedIngredients[ingId]} ${ing.unit}\n`;
-        }
-      });
-    }
-
     return text;
   };
 
