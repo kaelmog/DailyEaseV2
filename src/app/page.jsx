@@ -19,11 +19,11 @@ export default function DailyClosingApp() {
   // --- AUTO-SAVE STATES (Blackout Protection) ---
   const [outletType, setOutletType, clearOutlet, outletHydrated] = useAutoSave(
     "wheat_outlet",
-    "fresh_bake",
+    "fresh_bake"
   );
   const [inventory, setInventory, clearInventory, invHydrated] = useAutoSave(
     "wheat_inventory",
-    {},
+    {}
   );
   const [sales, setSales, clearSales, salesHydrated] = useAutoSave(
     "wheat_sales",
@@ -40,7 +40,7 @@ export default function DailyClosingApp() {
       voucher: 0,
       expenses: 0,
       expenseNote: "",
-    },
+    }
   );
 
   useEffect(() => {
@@ -139,11 +139,11 @@ export default function DailyClosingApp() {
       currency: "IDR",
     }).format(num || 0);
 
-    const generateReportText = () => {
-    // Generate Indonesian date format (e.g., Kamis, 12 Maret 2026)
+  const generateReportText = () => {
+    // Generate Indonesian date format
     const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const today = new Date().toLocaleDateString('id-ID', dateOptions);
-    const outletName = currentOutlet?.name || 'The Wheat';
+    const outletName = outletType === 'fresh_bake' ? 'The Wheat Cibubur' : 'The Wheat Fresh Market';
     const outletNameUpper = outletName.toUpperCase();
 
     // 1. SALES REPORT CLOSING
@@ -153,7 +153,7 @@ export default function DailyClosingApp() {
     text += `3. Grabfood\t: ${formatIDR(sales.grabfood)}\n`;
     text += `4. Gofood\t: ${formatIDR(sales.gofood)}\n`;
     text += `5. Shopeefood\t: ${formatIDR(sales.shopeefood)}\n`;
-    text += `6. Debit\t: ${formatIDR(sales.debit)}\n`; // Mapped EDC state to Debit
+    text += `6. Debit\t: ${formatIDR(sales.debit)}\n`; 
     text += `7. Credit card\t: ${formatIDR(sales.credit)}\n`;
     text += `8. Transfer\t: ${formatIDR(sales.transfer)}\n`;
     text += `9. Voucher\t: ${formatIDR(sales.voucher)}\n`;
@@ -171,7 +171,7 @@ export default function DailyClosingApp() {
 
     // 3. PENJUALAN PRODUK (Sold amounts)
     text += `*PENJUALAN PRODUK ${outletNameUpper}*\n${today}\n\n`;
-    activeProducts.forEach(p => {
+    products.forEach(p => {
       const data = inventory[p.id] || { sold: 0 };
       text += `* ${p.name.toLowerCase()} : ${data.sold || 0}\n`;
     });
@@ -179,7 +179,7 @@ export default function DailyClosingApp() {
 
     // 4. FROZEN DOUGH LEFTOVER (Uses 'Start' input as Frozen stock)
     text += `*PRODUK FROZEN DOUGH ${outletNameUpper}*\n${today}\n\n`;
-    activeProducts.forEach(p => {
+    products.forEach(p => {
       const data = inventory[p.id] || { start: 0 };
       text += `-${p.name} = ${data.start || 0}\n`;
     });
@@ -187,17 +187,15 @@ export default function DailyClosingApp() {
 
     // 5. DISPLAY LEFTOVER (Calculated Sisa)
     text += `*PRODUK JADI / DISPLAY ${outletNameUpper}*\n\n`;
-    activeProducts.forEach(p => {
+    products.forEach(p => {
       const sisa = getSisa(p);
       text += `-${p.name} = ${sisa}\n`;
     });
 
-    return text;
-  };
-
+    // 6. GRAMASI
     const usedIngKeys = Object.keys(usedIngredients);
     if (usedIngKeys.length > 0) {
-      text += `\n*⚖️ PENGGUNAAN BAHAN (GRAMASI)*\n`;
+      text += `\n\n*⚖️ PENGGUNAAN BAHAN (GRAMASI)*\n`;
       usedIngKeys.forEach((ingId) => {
         const ing = ingredients.find((i) => i.id === ingId);
         if (ing) {
@@ -229,8 +227,6 @@ export default function DailyClosingApp() {
     } else {
       navigator.clipboard.writeText(generateReportText());
       alert("Shift saved to database! WhatsApp report copied to clipboard.");
-      // Optional: clear data for next shift
-      // clearInventory(); clearSales();
     }
   };
 
