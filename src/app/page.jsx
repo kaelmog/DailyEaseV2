@@ -237,7 +237,7 @@ export default function DailyClosingApp() {
   if (!isReady || !invHydrated || !salesHydrated || !outletHydrated) {
     return (
       <div className="min-h-screen flex items-center justify-center font-bold text-gray-500">
-        Loading ERP Core...
+        Closing ga harus ribet ;)...
       </div>
     );
   }
@@ -257,8 +257,8 @@ export default function DailyClosingApp() {
           value={outletType}
           onChange={setOutletType}
           options={[
-            { id: "fresh_bake", name: "🏢 Fresh Bake Outlet (Shapes Dough)" },
-            { id: "frozen_goods", name: "❄️ Frozen Goods Outlet" },
+            { id: "fresh_bake", name: "The Wheat Cibubur" },
+            { id: "frozen_goods", name: "The Wheat Fresh Market" },
           ]}
           className="text-black"
         />
@@ -286,9 +286,21 @@ export default function DailyClosingApp() {
               />
               <UniversalInput
                 type="currency"
-                label="EDC"
-                value={sales.edc}
-                onChange={(v) => handleSalesInput("edc", v)}
+                label="Credit"
+                value={sales.credit}
+                onChange={(v) => handleSalesInput("credit", v)}
+              />
+              <UniversalInput
+                type="currency"
+                label="Transfer"
+                value={sales.transfer}
+                onChange={(v) => handleSalesInput("transfer", v)}
+              />
+              <UniversalInput
+                type="currency"
+                label="Transfer Outstanding"
+                value={sales.transfer_outstanding}
+                onChange={(v) => handleSalesInput("transfer_outstanding", v)}
               />
               <UniversalInput
                 type="currency"
