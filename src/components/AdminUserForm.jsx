@@ -66,15 +66,15 @@ export default function AdminUserForm() {
               value={username}
               onChange={setUsername}
               required
-              placeholder="e.g., Kaelm"
+              placeholder="Username"
             />
             <UniversalInput
-              label="PIN"
+              label="Password"
               value={pin}
               onChange={setPin}
               type="text"
               required
-              placeholder="030325!"
+              placeholder="Password"
             />
             <UniversalInput
               type="select"
