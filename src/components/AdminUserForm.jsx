@@ -72,25 +72,15 @@ export default function AdminUserForm() {
               value={username}
               onChange={setUsername}
               required
-<<<<<<< HEAD
               placeholder={t("user_name_ph")}
             />
-            <UniversalInput
-              label={t("user_pin")}
-=======
-              placeholder="Username"
-            />
+            <UniversalInput label={t("user_pin")} placeholder="Username" />
             <UniversalInput
               label="Password"
->>>>>>> d9d8bfe55e03215bdad167c6f8a1b8a4fbd709aa
               value={pin}
               onChange={setPin}
               required
-<<<<<<< HEAD
               placeholder={t("user_pin_ph")}
-=======
-              placeholder="Password"
->>>>>>> d9d8bfe55e03215bdad167c6f8a1b8a4fbd709aa
             />
             <UniversalInput
               type="select"

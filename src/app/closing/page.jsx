@@ -1,6 +1,6 @@
 /**
  * @file page.jsx (Closing Form)
- * @description Fully responsive shift closing interface for Mobile, Tablet, and Desktop.
+ * @description Fully responsive shift closing interface, reordered for better UX flow.
  */
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
@@ -219,7 +219,6 @@ export default function DailyClosingApp() {
             {t("review_subtitle")}
           </p>
         </div>
-        {/* RESPONSIVE: 1 Col Mobile, 3 Cols Desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 pt-4">
           <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col">
             <h3 className="font-bold text-gray-800 mb-2">{t("report_1")}</h3>
@@ -400,15 +399,12 @@ export default function DailyClosingApp() {
         </h1>
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-blue-200 uppercase tracking-wider mb-1">
-              Outlet
-            </label>
             <UniversalInput
               type="select"
               value={selectedOutletId}
               onChange={setSelectedOutletId}
               options={outlets.map((o) => ({ id: o.id, name: o.name }))}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-bold bg-white shadow-inner"
+              className="text-black font-bold h-full"
               placeholder={t("select_outlet")}
             />
           </div>
@@ -434,8 +430,8 @@ export default function DailyClosingApp() {
         </div>
       ) : (
         <div className="px-4 md:px-8 space-y-6">
+          {/* TOP: FINANCIAL & SALES BY CATEGORY */}
           <AccordionSection title={t("financial_title")} defaultOpen={false}>
-            {/* RESPONSIVE: 2 cols Mobile, 3 cols Tablet, 5 cols Desktop */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-4">
               <UniversalInput
                 type="currency"
@@ -563,140 +559,7 @@ export default function DailyClosingApp() {
             </div>
           </AccordionSection>
 
-          <AccordionSection title={t("ingredients_title")} defaultOpen={false}>
-            {/* RESPONSIVE: 1 col Mobile, 2 cols Tablet, 3 cols Desktop */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {ingredients.map((ing) => {
-                const data = ingredientInv[ing.id] || {};
-                const sisa =
-                  (data.start || 0) +
-                  (data.in || 0) -
-                  (data.out || 0) -
-                  (data.waste || 0);
-                return (
-                  <div
-                    key={ing.id}
-                    className="p-4 bg-white border border-gray-300 rounded-xl shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex justify-between items-center font-bold mb-3 border-b pb-2">
-                      <span className="text-gray-800">
-                        {ing.name}{" "}
-                        <span className="text-gray-500 font-normal text-xs md:text-sm">
-                          ({ing.unit})
-                        </span>
-                      </span>
-                      <span
-                        className={`text-xs md:text-sm px-2 py-1 rounded-full ${sisa < 0 ? "bg-red-200 text-red-800" : "bg-blue-100 text-blue-800"}`}
-                      >
-                        {t("sisa")}: {sisa}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      <UniversalInput
-                        type="number"
-                        label={t("start")}
-                        value={data.start || ""}
-                        onChange={(v) => handleIngInput(ing.id, "start", v)}
-                      />
-                      <UniversalInput
-                        type="number"
-                        label={t("in")}
-                        value={data.in || ""}
-                        onChange={(v) => handleIngInput(ing.id, "in", v)}
-                      />
-                      <UniversalInput
-                        type="number"
-                        label={t("out")}
-                        value={data.out || ""}
-                        onChange={(v) => handleIngInput(ing.id, "out", v)}
-                      />
-                      <UniversalInput
-                        type="number"
-                        label={t("waste")}
-                        value={data.waste || ""}
-                        onChange={(v) => handleIngInput(ing.id, "waste", v)}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </AccordionSection>
-
-          {/* Quick Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card title={t("live_display_title")} className="h-full">
-              <div className="max-h-56 overflow-y-auto space-y-2 pr-2">
-                {activeProducts.map((p) => {
-                  const sisa = getDisplaySisa(
-                    inventory[p.id] || {},
-                    p.is_base
-                      ? calculateShapingDeduction(
-                          p.id,
-                          activeProducts,
-                          inventory,
-                        )
-                      : 0,
-                  );
-                  if (sisa === 0) return null;
-                  return (
-                    <div
-                      key={p.id}
-                      className="text-sm md:text-base flex justify-between border-b border-gray-100 pb-1"
-                    >
-                      <span>{p.name}</span>
-                      <span className="font-bold text-orange-700">{sisa}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-            <Card title={t("live_frozen_title")} className="h-full">
-              <div className="max-h-56 overflow-y-auto space-y-2 pr-2">
-                {activeProducts.map((p) => {
-                  const sisa = getFrozenSisa(inventory[p.id] || {});
-                  if (sisa === 0) return null;
-                  return (
-                    <div
-                      key={p.id}
-                      className="text-sm md:text-base flex justify-between border-b border-gray-100 pb-1"
-                    >
-                      <span>{p.name}</span>
-                      <span className="font-bold text-blue-700">{sisa}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-            <Card title={t("gramasi_title")} className="h-full">
-              {Object.keys(usedIngredients).length === 0 ? (
-                <p className="text-sm text-gray-500 italic">
-                  Input production to see material usage.
-                </p>
-              ) : (
-                <div className="space-y-2 pr-2 max-h-56 overflow-y-auto">
-                  {Object.keys(usedIngredients).map((ingId) => {
-                    const ing = ingredients.find((i) => i.id === ingId);
-                    if (!ing) return null;
-                    return (
-                      <div
-                        key={ingId}
-                        className="flex justify-between text-sm md:text-base border-b border-gray-100 pb-1"
-                      >
-                        <span className="font-semibold text-gray-700">
-                          {ing.name}
-                        </span>
-                        <span className="font-bold text-green-700">
-                          {usedIngredients[ingId]} {ing.unit}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </Card>
-          </div>
-
+          {/* SECOND: PRODUCT CATEGORIES (Bread, Pastry, etc.) */}
           {categories.map((cat) => {
             const catProducts = activeProducts.filter(
               (p) => p.category_id === cat.id,
@@ -708,7 +571,6 @@ export default function DailyClosingApp() {
                 title={`📦 ${cat.name}`}
                 defaultOpen={false}
               >
-                {/* RESPONSIVE: 1 col Mobile, 2 cols Desktop */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {catProducts.map((prod) => {
                     const data = inventory[prod.id] || {};
@@ -829,10 +691,144 @@ export default function DailyClosingApp() {
               </AccordionSection>
             );
           })}
+
+          {/* THIRD: INGREDIENTS INVENTORY */}
+          <AccordionSection title={t("ingredients_title")} defaultOpen={false}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {ingredients.map((ing) => {
+                const data = ingredientInv[ing.id] || {};
+                const sisa =
+                  (data.start || 0) +
+                  (data.in || 0) -
+                  (data.out || 0) -
+                  (data.waste || 0);
+                return (
+                  <div
+                    key={ing.id}
+                    className="p-4 bg-white border border-gray-300 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex justify-between items-center font-bold mb-3 border-b pb-2">
+                      <span className="text-gray-800">
+                        {ing.name}{" "}
+                        <span className="text-gray-500 font-normal text-xs md:text-sm">
+                          ({ing.unit})
+                        </span>
+                      </span>
+                      <span
+                        className={`text-xs md:text-sm px-2 py-1 rounded-full ${sisa < 0 ? "bg-red-200 text-red-800" : "bg-blue-100 text-blue-800"}`}
+                      >
+                        {t("sisa")}: {sisa}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <UniversalInput
+                        type="number"
+                        label={t("start")}
+                        value={data.start || ""}
+                        onChange={(v) => handleIngInput(ing.id, "start", v)}
+                      />
+                      <UniversalInput
+                        type="number"
+                        label={t("in")}
+                        value={data.in || ""}
+                        onChange={(v) => handleIngInput(ing.id, "in", v)}
+                      />
+                      <UniversalInput
+                        type="number"
+                        label={t("out")}
+                        value={data.out || ""}
+                        onChange={(v) => handleIngInput(ing.id, "out", v)}
+                      />
+                      <UniversalInput
+                        type="number"
+                        label={t("waste")}
+                        value={data.waste || ""}
+                        onChange={(v) => handleIngInput(ing.id, "waste", v)}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </AccordionSection>
+
+          {/* BOTTOM: LIVE SUMMARY CARDS */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card title={t("live_display_title")} className="h-full">
+              <div className="max-h-56 overflow-y-auto space-y-2 pr-2">
+                {activeProducts.map((p) => {
+                  const sisa = getDisplaySisa(
+                    inventory[p.id] || {},
+                    p.is_base
+                      ? calculateShapingDeduction(
+                          p.id,
+                          activeProducts,
+                          inventory,
+                        )
+                      : 0,
+                  );
+                  if (sisa === 0) return null;
+                  return (
+                    <div
+                      key={p.id}
+                      className="text-sm md:text-base flex justify-between border-b border-gray-100 pb-1"
+                    >
+                      <span>{p.name}</span>
+                      <span className="font-bold text-orange-700">{sisa}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+            <Card title={t("live_frozen_title")} className="h-full">
+              <div className="max-h-56 overflow-y-auto space-y-2 pr-2">
+                {activeProducts.map((p) => {
+                  const sisa = getFrozenSisa(inventory[p.id] || {});
+                  if (sisa === 0) return null;
+                  return (
+                    <div
+                      key={p.id}
+                      className="text-sm md:text-base flex justify-between border-b border-gray-100 pb-1"
+                    >
+                      <span>{p.name}</span>
+                      <span className="font-bold text-blue-700">{sisa}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+            <Card title={t("gramasi_title")} className="h-full">
+              {Object.keys(usedIngredients).length === 0 ? (
+                <p className="text-sm text-gray-500 italic">
+                  Input production to see material usage.
+                </p>
+              ) : (
+                <div className="space-y-2 pr-2 max-h-56 overflow-y-auto">
+                  {Object.keys(usedIngredients).map((ingId) => {
+                    const ing = ingredients.find((i) => i.id === ingId);
+                    if (!ing) return null;
+                    return (
+                      <div
+                        key={ingId}
+                        className="flex justify-between text-sm md:text-base border-b border-gray-100 pb-1"
+                      >
+                        <span className="font-semibold text-gray-700">
+                          {ing.name}
+                        </span>
+                        <span className="font-bold text-green-700">
+                          {usedIngredients[ingId]} {ing.unit}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
         </div>
       )}
 
-      {/* Centered Floating Footer with TWO buttons stacked */}
+      {/* Floating Footer */}
       {selectedOutletId && (
         <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-6xl bg-white border-t p-4 flex flex-col gap-2 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] z-50">
           <Button
