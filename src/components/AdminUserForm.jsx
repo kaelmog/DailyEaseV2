@@ -4,117 +4,140 @@ import { supabase } from "../utils/supabase";
 import { Card } from "./ui/Containers";
 import { UniversalInput } from "./ui/UniversalInput";
 import { Button } from "./ui/BaseComponents";
+import { t } from "../utils/dictionary";
 
 export default function AdminUserForm() {
   const [users, setUsers] = useState([]);
+  const [outlets, setOutlets] = useState([]);
+
   const [username, setUsername] = useState("");
   const [pin, setPin] = useState("");
-  const [role, setRole] = useState("staff");
+  const [role, setRole] = useState("baker");
+  const [outletId, setOutletId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchUsers = async () => {
-    const { data } = await supabase
+  const fetchData = async () => {
+    const { data: uData } = await supabase
       .from("app_users")
+      .select("*, outlets(name)")
+      .order("created_at", { ascending: false });
+    const { data: oData } = await supabase
+      .from("outlets")
       .select("*")
-      .order("created_at");
-    if (data) setUsers(data);
+      .eq("is_active", true);
+    if (uData) setUsers(uData);
+    if (oData) setOutlets(oData);
   };
 
   useEffect(() => {
-    // This tells the strict linter to ignore this completely safe fetch call
     // eslint-disable-next-line
-    fetchUsers();
+    fetchData();
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleCreate = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
     const { error } = await supabase
       .from("app_users")
-      .insert([{ username, pin, role }]);
-
+      .insert([{ username, pin, role, outlet_id: outletId || null }]);
     setIsLoading(false);
 
-    if (error) {
-      alert("Error creating user: " + error.message);
-    } else {
-      alert("User created successfully!");
+    if (error) alert("Error: " + error.message);
+    else {
+      alert(t("user_alert_add"));
       setUsername("");
       setPin("");
-      setRole("staff");
-      fetchUsers();
+      setRole("baker");
+      setOutletId("");
+      fetchData();
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
+  const handleDelete = async (id, name) => {
+    if (!confirm(t("user_alert_delete"))) return;
     await supabase.from("app_users").delete().eq("id", id);
-    fetchUsers();
+    fetchData();
   };
 
   return (
-    <div className="space-y-6 mb-10">
-      <form onSubmit={handleSubmit}>
-        <Card
-          title="User Management"
-          subtitle="Add staff or admins with secure PINs."
+    <div className="space-y-8">
+      <Card title={t("user_title")} subtitle={t("user_subtitle")}>
+        <form
+          onSubmit={handleCreate}
+          className="space-y-4 mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200"
         >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <UniversalInput
-              label="Username"
+              label={t("user_name")}
               value={username}
               onChange={setUsername}
               required
-              placeholder="e.g., Kaelm"
+              placeholder={t("user_name_ph")}
             />
             <UniversalInput
-              label="PIN"
+              label={t("user_pin")}
               value={pin}
               onChange={setPin}
-              type="text"
               required
-              placeholder="030325!"
+              placeholder={t("user_pin_ph")}
             />
             <UniversalInput
               type="select"
-              label="Role"
+              label={t("user_role")}
               value={role}
               onChange={setRole}
               options={[
-                { id: "admin", name: "Admin" },
-                { id: "staff", name: "Staff" },
+                { id: "baker", name: t("user_role_baker") },
+                { id: "supervisor", name: t("user_role_spv") },
+                { id: "admin", name: t("user_role_admin") },
               ]}
               required
             />
+            <UniversalInput
+              type="select"
+              label={t("user_outlet")}
+              value={outletId}
+              onChange={setOutletId}
+              options={outlets}
+            />
+          </div>
+          <div className="text-right">
             <Button type="submit" variant="primary" isLoading={isLoading}>
-              Add User
+              {t("btn_add")}
             </Button>
           </div>
-        </Card>
-      </form>
+        </form>
 
-      {/* User List */}
-      <Card title="Active Users">
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-96 overflow-y-auto">
           {users.map((u) => (
             <div
               key={u.id}
-              className="flex justify-between items-center p-3 bg-gray-50 border rounded"
+              className="flex justify-between items-center p-3 border rounded bg-white hover:bg-gray-50 transition-colors shadow-sm"
             >
-              <div>
-                <span className="font-bold">{u.username}</span>
-                <span
-                  className={`ml-3 text-xs px-2 py-1 rounded ${u.role === "admin" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"}`}
-                >
-                  {u.role.toUpperCase()}
+              <div className="flex flex-col">
+                <span className="font-bold text-gray-800">
+                  {u.username}{" "}
+                  <span className="text-xs text-gray-500 font-normal ml-2">
+                    PIN: {u.pin}
+                  </span>
+                </span>
+                <span className="text-xs text-gray-500 uppercase tracking-wider">
+                  {u.role} • {u.outlets?.name || "All Outlets"}
                 </span>
               </div>
-              <Button variant="danger" onClick={() => handleDelete(u.id)}>
-                Delete
-              </Button>
+              <button
+                onClick={() => handleDelete(u.id, u.username)}
+                className="text-xs text-red-600 font-bold px-2 hover:underline"
+              >
+                {t("btn_delete")}
+              </button>
             </div>
           ))}
+          {users.length === 0 && (
+            <p className="text-center text-gray-500 text-sm italic p-4">
+              {t("user_empty")}
+            </p>
+          )}
         </div>
       </Card>
     </div>

@@ -4,6 +4,7 @@ import { supabase } from "../utils/supabase";
 import { Card } from "./ui/Containers";
 import { UniversalInput } from "./ui/UniversalInput";
 import { Button } from "./ui/BaseComponents";
+import { t } from "../utils/dictionary";
 
 export default function AdminProductManager() {
   const [existingProducts, setExistingProducts] = useState([]);
@@ -11,7 +12,6 @@ export default function AdminProductManager() {
   const [baseProducts, setBaseProducts] = useState([]);
   const [ingredientsList, setIngredientsList] = useState([]);
 
-  // Form State
   const [editingId, setEditingId] = useState(null);
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -54,9 +54,7 @@ export default function AdminProductManager() {
     fetchData();
   }, []);
 
-  // --- ACTIONS: DELETE, TOGGLE, EDIT ---
   const toggleActive = async (id, currentStatus) => {
-    // Explicitly handle null values by checking exactly for true
     const newStatus = currentStatus === true ? false : true;
     await supabase
       .from("products")
@@ -80,7 +78,6 @@ export default function AdminProductManager() {
     setBaseProductId(p.base_product_id || "");
     setProductionNotes(p.production_notes || "");
 
-    // Fetch existing recipe
     const { data: existingRecipe } = await supabase
       .from("gramasi_recipes")
       .select("*")
@@ -95,8 +92,6 @@ export default function AdminProductManager() {
     } else {
       setRecipe([{ ingredient_id: "", amount: "" }]);
     }
-
-    // Scroll to form
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   };
 
@@ -117,7 +112,6 @@ export default function AdminProductManager() {
     setRecipe(newRecipe);
   };
 
-  // --- SUBMIT (CREATE OR UPDATE) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -134,7 +128,6 @@ export default function AdminProductManager() {
     let targetProductId = editingId;
 
     if (editingId) {
-      // UPDATE EXISTING
       const { error } = await supabase
         .from("products")
         .update(productPayload)
@@ -144,14 +137,11 @@ export default function AdminProductManager() {
         setIsLoading(false);
         return;
       }
-
-      // Clear old recipes
       await supabase
         .from("gramasi_recipes")
         .delete()
         .eq("product_id", editingId);
     } else {
-      // CREATE NEW
       const { data: newProduct, error } = await supabase
         .from("products")
         .insert([productPayload])
@@ -165,7 +155,6 @@ export default function AdminProductManager() {
       targetProductId = newProduct.id;
     }
 
-    // Insert new recipes
     const validRecipes = recipe.filter((r) => r.ingredient_id && r.amount);
     if (validRecipes.length > 0) {
       const recipeInserts = validRecipes.map((r) => ({
@@ -184,18 +173,19 @@ export default function AdminProductManager() {
 
   return (
     <div className="space-y-8">
-      <Card
-        title="Manage Existing Products"
-        subtitle="View, Edit, Disable, or Delete products."
-      >
+      <Card title={t("prod_title")} subtitle={t("prod_subtitle")}>
         <div className="max-h-80 overflow-y-auto">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 bg-white shadow-sm z-10">
               <tr className="bg-gray-100 text-sm">
-                <th className="p-2 border-b">Name</th>
-                <th className="p-2 border-b">Category</th>
-                <th className="p-2 border-b text-center">Status</th>
-                <th className="p-2 border-b text-right">Actions</th>
+                <th className="p-2 border-b">{t("prod_col_name")}</th>
+                <th className="p-2 border-b">{t("prod_col_cat")}</th>
+                <th className="p-2 border-b text-center">
+                  {t("prod_col_status")}
+                </th>
+                <th className="p-2 border-b text-right">
+                  {t("prod_col_actions")}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -211,7 +201,7 @@ export default function AdminProductManager() {
                       onClick={() => toggleActive(p.id, p.is_active)}
                       className={`text-xs px-2 py-1 rounded font-bold ${p.is_active ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-700"}`}
                     >
-                      {p.is_active ? "Active" : "Disabled"}
+                      {p.is_active ? t("prod_active") : t("prod_disabled")}
                     </button>
                   </td>
                   <td className="p-2 text-right space-x-2">
@@ -219,13 +209,13 @@ export default function AdminProductManager() {
                       onClick={() => handleEdit(p)}
                       className="text-blue-600 hover:text-blue-800 font-bold px-2"
                     >
-                      Edit
+                      {t("btn_edit")}
                     </button>
                     <button
                       onClick={() => handleDelete(p.id, p.name)}
                       className="text-red-600 hover:text-red-800 font-bold px-2"
                     >
-                      Del
+                      {t("btn_delete")}
                     </button>
                   </td>
                 </tr>
@@ -243,25 +233,25 @@ export default function AdminProductManager() {
       >
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-800">
-            {editingId ? `✏️ Editing: ${name}` : "➕ Add New Product"}
+            {editingId ? `${t("prod_editing")} ${name}` : t("prod_add_new")}
           </h2>
           {editingId && (
             <Button type="button" variant="ghost" onClick={resetForm}>
-              Cancel Edit
+              {t("btn_cancel")}
             </Button>
           )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <UniversalInput
-            label="Product Name"
+            label={t("prod_name")}
             value={name}
             onChange={setName}
             required
           />
           <UniversalInput
             type="select"
-            label="Category"
+            label={t("prod_cat")}
             value={categoryId}
             onChange={setCategoryId}
             options={categories}
@@ -269,13 +259,13 @@ export default function AdminProductManager() {
           />
           <UniversalInput
             type="number"
-            label="Sort Order"
+            label={t("prod_sort")}
             value={sortOrder}
             onChange={setSortOrder}
             required
           />
           <UniversalInput
-            label="Production Notes"
+            label={t("prod_notes")}
             value={productionNotes}
             onChange={setProductionNotes}
           />
@@ -292,12 +282,12 @@ export default function AdminProductManager() {
               }}
               className="w-5 h-5 text-blue-600 rounded"
             />
-            This IS a Base Product (Dough Source)
+            {t("prod_is_base")}
           </label>
           {!isBase && (
             <UniversalInput
               type="select"
-              label="Deducts Stock From:"
+              label={t("prod_deducts_from")}
               value={baseProductId}
               onChange={setBaseProductId}
               options={baseProducts}
@@ -305,7 +295,7 @@ export default function AdminProductManager() {
           )}
         </div>
 
-        <Card title="Gramasi Recipe" subtitle="Ingredients per 1 unit produced">
+        <Card title={t("prod_recipe_title")} subtitle={t("prod_recipe_sub")}>
           {recipe.map((row, index) => (
             <div key={index} className="flex gap-2 items-end mb-3">
               <div className="flex-1">
@@ -342,7 +332,7 @@ export default function AdminProductManager() {
               setRecipe([...recipe, { ingredient_id: "", amount: "" }])
             }
           >
-            + Add Ingredient
+            {t("prod_add_ing")}
           </Button>
         </Card>
 
@@ -352,7 +342,7 @@ export default function AdminProductManager() {
           isLoading={isLoading}
           className="w-full py-3 shadow-md"
         >
-          {editingId ? "Update Product" : "Save New Product"}
+          {editingId ? t("prod_btn_update") : t("prod_btn_save")}
         </Button>
       </form>
     </div>
