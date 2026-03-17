@@ -1,13 +1,36 @@
 /**
  * @file templateGenerators.js
- * @description Generates formatted text reports for WhatsApp sharing. Automatically hides empty/zero values for a clean look.
+ * @description Generates formatted text reports for WhatsApp sharing.
+ * Strictly maintains structure, showing '0' or 'Rp -' for all empty fields.
  */
 import {
-  formatIDR,
   getFrozenSisa,
   getDisplaySisa,
   calculateShapingDeduction,
 } from "./closingMath";
+
+const formatDateStr = (dateStr) => {
+  const d = new Date(dateStr);
+  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const months = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+  ];
+  return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+};
+
+const formatRp = (num) =>
+  num && Number(num) > 0 ? `Rp${Number(num).toLocaleString("id-ID")}` : "Rp -";
 
 export const generateSalesReport = (
   reportDate,
@@ -16,26 +39,14 @@ export const generateSalesReport = (
   totalRevenue,
   outletName,
 ) => {
-  // Format the date to something like "Selasa, 17 Maret 2026"
-  const dateObj = new Date(reportDate);
-  const formattedDate = dateObj.toLocaleDateString("id-ID", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const dateString = formatDateStr(reportDate);
 
-  let text = `*Sales Report closing Outlet ${outletName.toUpperCase()} ${formattedDate}*\n\n`;
+  let text = `*Sales Report closing Outlet The Wheat ${outletName} hari ${dateString}*\n\n`;
 
-  // Helper function to format exactly as requested: "Debit : Rp500.000 / 16 trx" or "Credit : Rp -"
   const formatMethod = (idx, label, amountKey, trxKey) => {
     const amt = sales[amountKey] || 0;
     const trx = sales[trxKey] || 0;
-
-    const amtStr = amt > 0 ? formatIDR(amt) : "Rp -";
-    const trxStr = trx > 0 ? ` / ${trx} trx` : "";
-
-    return `${idx}. ${label.padEnd(20, " ")} : ${amtStr}${trxStr}\n`;
+    return `${idx}. ${label.padEnd(20, " ")} : ${formatRp(amt)} / ${trx} trx\n`;
   };
 
   text += formatMethod(1, "Cash", "cash", "cash_trx");
@@ -43,7 +54,7 @@ export const generateSalesReport = (
   text += formatMethod(3, "Grabfood", "grabfood", "grabfood_trx");
   text += formatMethod(4, "Gofood", "gofood", "gofood_trx");
   text += formatMethod(5, "Shopeefood", "shopeefood", "shopeefood_trx");
-  text += formatMethod(6, "Debit card", "debit", "debit_trx");
+  text += formatMethod(6, "Debit", "debit", "debit_trx");
   text += formatMethod(7, "Credit card", "credit", "credit_trx");
   text += formatMethod(8, "Transfer", "transfer", "transfer_trx");
   text += formatMethod(9, "Voucher", "voucher", "voucher_trx");
@@ -54,38 +65,24 @@ export const generateSalesReport = (
     "transfer_outstanding_trx",
   );
 
-  text += `\n*💰 TOTAL REVENUE: ${formatIDR(totalRevenue)}*\n\n`;
+  text += `\n*TOTAL* : ${formatRp(totalRevenue)}\n\n`;
 
-  // Only show expenses if there are any
-  if (sales.expenses > 0) {
-    text += `*💸 PENGELUARAN*\n`;
-    text += `• Nominal: ${formatIDR(sales.expenses)}\n`;
-    text += `• Keterangan: ${sales.expenseNote || "-"}\n\n`;
-  }
+  text += `*PENGELUARAN*\n`;
+  text += `Nominal: ${formatRp(sales.expenses)}\n`;
+  text += `Keterangan: ${sales.expenseNote || "-"}\n\n\n`;
 
-  text += `*📦 SALES BY CATEGORY*\n`;
-  const catMap = [
-    { key: "croissant", label: "Croissant" },
-    { key: "bread", label: "Bread" },
-    { key: "promo", label: "Bundling/Promo" },
-    { key: "snack", label: "Snack" },
-    { key: "coffee", label: "Coffee" },
-    { key: "beverage", label: "Beverage" },
-    { key: "hampers", label: "Hampers" },
-    { key: "pb1", label: "PB1" },
-  ];
+  text += `*Sales Report Produk The Wheat ${outletName} hari ${dateString}*\n\n`;
+  text += `Croissant & Viennoiserie : ${formatRp(categorySales.croissant)}\n`;
+  text += `Bread    : ${formatRp(categorySales.bread)}\n`;
+  text += `Promo Bundling : ${formatRp(categorySales.promo)}\n`;
+  text += `Snack    : ${formatRp(categorySales.snack)}\n`;
+  text += `Spoke coffee    : ${formatRp(categorySales.coffee)}\n`;
+  text += `Beverage : ${formatRp(categorySales.beverage)}\n`;
+  text += `Hampers: ${formatRp(categorySales.hampers)}\n`;
+  text += `PB1 : ${formatRp(categorySales.pb1)}\n\n`;
+  text += `Terima kasih 🙏`;
 
-  let hasCategorySales = false;
-  catMap.forEach(({ key, label }) => {
-    if (categorySales[key] > 0) {
-      text += `• ${label}: ${formatIDR(categorySales[key])}\n`;
-      hasCategorySales = true;
-    }
-  });
-
-  if (!hasCategorySales) text += `(Tidak ada penjualan per kategori)\n`;
-
-  return text.trim();
+  return text;
 };
 
 export const generateProductSales = (
@@ -94,26 +91,16 @@ export const generateProductSales = (
   inventory,
   outletName,
 ) => {
-  let text = `*LAPORAN PENJUALAN PRODUK*\n`;
-  text += `📍 Outlet: ${outletName}\n`;
-  text += `📅 Tanggal: ${reportDate}\n\n`;
-
-  let hasSales = false;
+  const dateString = formatDateStr(reportDate);
+  let text = `*PENJUALAN PRODUK THE WHEAT ${outletName.toUpperCase()}*\n`;
+  text += `${dateString}\n\n`;
 
   activeProducts.forEach((p) => {
-    const data = inventory[p.id] || {};
-    const sold = data.display_sold || 0;
-
-    // Only show if sold > 0
-    if (sold > 0) {
-      text += `• ${p.name}: ${sold} pcs\n`;
-      hasSales = true;
-    }
+    const sold = inventory[p.id]?.display_sold || 0;
+    text += `* ${p.name.toLowerCase()} : ${sold}\n`;
   });
 
-  if (!hasSales) text += `(Tidak ada produk terjual)\n`;
-
-  return text.trim();
+  return text;
 };
 
 export const generateFrozenDisplay = (
@@ -124,50 +111,32 @@ export const generateFrozenDisplay = (
   usedIngredients,
   outletName,
 ) => {
-  let text = `*LAPORAN SISA STOK (FROZEN & DISPLAY)*\n`;
-  text += `📍 Outlet: ${outletName}\n`;
-  text += `📅 Tanggal: ${reportDate}\n\n`;
+  const dateString = formatDateStr(reportDate);
+  let text = `*PRODUK FROZEN DOUGH THE WHEAT ${outletName.toUpperCase()}*\n`;
+  text += `${dateString}\n\n`;
 
-  text += `*❄️ SISA FROZEN*\n`;
-  let hasFrozen = false;
   activeProducts.forEach((p) => {
     const sisa = getFrozenSisa(inventory[p.id] || {});
-    // Only show if sisa is not zero
-    if (sisa !== 0) {
-      text += `• ${p.name}: ${sisa}\n`;
-      hasFrozen = true;
-    }
+    text += `-${p.name} = ${sisa}\n`;
   });
-  if (!hasFrozen) text += `(Kosong)\n`;
 
-  text += `\n*🏪 SISA DISPLAY*\n`;
-  let hasDisplay = false;
+  text += `\n\n*PRODUK JADI / DISPLAY THE WHEAT ${outletName.toUpperCase()}*\n\n`;
+
   activeProducts.forEach((p) => {
     const deduction = p.is_base
       ? calculateShapingDeduction(p.id, activeProducts, inventory)
       : 0;
     const sisa = getDisplaySisa(inventory[p.id] || {}, deduction);
-    // Only show if sisa is not zero
-    if (sisa !== 0) {
-      text += `• ${p.name}: ${sisa}\n`;
-      hasDisplay = true;
-    }
+    text += `-${p.name} = ${sisa}\n`;
   });
-  if (!hasDisplay) text += `(Kosong)\n`;
 
-  // Only show ingredients section if there is actual usage
-  if (Object.keys(usedIngredients).length > 0) {
-    let hasIngredients = false;
-    let ingText = `\n*⚖️ PEMAKAIAN BAHAN*\n`;
-    Object.keys(usedIngredients).forEach((ingId) => {
-      const ing = ingredients.find((i) => i.id === ingId);
-      if (ing && usedIngredients[ingId] > 0) {
-        ingText += `• ${ing.name}: ${usedIngredients[ingId]} ${ing.unit}\n`;
-        hasIngredients = true;
-      }
+  if (ingredients && ingredients.length > 0) {
+    text += `\n\n*PEMAKAIAN BAHAN*\n\n`;
+    ingredients.forEach((ing) => {
+      const used = usedIngredients[ing.id] || 0;
+      text += `-${ing.name} = ${used} ${ing.unit}\n`;
     });
-    if (hasIngredients) text += ingText;
   }
 
-  return text.trim();
+  return text;
 };

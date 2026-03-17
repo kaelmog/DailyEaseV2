@@ -1,6 +1,6 @@
 /**
  * @file page.jsx (Closing Form)
- * @description Fully responsive shift closing interface, with Transaction inputs and Premium UI.
+ * @description Fully responsive shift closing interface, with Transaction inputs and precise ingredient usage.
  */
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
@@ -54,7 +54,6 @@ export default function DailyClosingApp() {
   const [ingredientInv, setIngredientInv, clearIngInv, ingInvHydrated] =
     useAutoSave("wheat_ing_inv", {});
 
-  // ADDED: _trx fields for all payment methods
   const [sales, setSales, clearSales, salesHydrated] = useAutoSave(
     "wheat_sales",
     {
@@ -167,9 +166,12 @@ export default function DailyClosingApp() {
     setCategorySales((prev) => ({ ...prev, [field]: value }));
 
   const totalRevenue = useMemo(() => calculateTotalRevenue(sales), [sales]);
+
+  // FIX: Passed `ingredients` so the engine can check for Dextros/Matcha Powder
   const usedIngredients = useMemo(
-    () => calculateUsedIngredients(activeProducts, inventory, recipes),
-    [inventory, activeProducts, recipes],
+    () =>
+      calculateUsedIngredients(activeProducts, inventory, recipes, ingredients),
+    [inventory, activeProducts, recipes, ingredients],
   );
 
   const handleCopy = (text) => {
@@ -216,7 +218,6 @@ export default function DailyClosingApp() {
     );
   }
 
-  // --- Payment Methods Helper ---
   const paymentMethods = [
     { id: "cash", label: "Cash" },
     { id: "qris", label: "QRIS" },
@@ -230,9 +231,6 @@ export default function DailyClosingApp() {
     { id: "voucher", label: "Voucher" },
   ];
 
-  // ==========================================
-  // REVIEW SCREEN
-  // ==========================================
   if (isReviewing) {
     const isCinere = currentOutlet.name.toLowerCase().includes("cinere");
     return (
@@ -414,12 +412,8 @@ export default function DailyClosingApp() {
     );
   }
 
-  // ==========================================
-  // INPUT SCREEN
-  // ==========================================
   return (
-    <div className="max-w-6xl mx-auto min-h-screen bg-stone-100 pb-25 shadow-2xl relative">
-      {/* HEADER */}
+    <div className="max-w-6xl mx-auto min-h-screen bg-stone-100 pb-36 shadow-2xl relative">
       <div className="bg-stone-900 text-stone-50 p-6 md:p-8 shadow-md mb-6 relative border-b-4 border-amber-600">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
@@ -489,10 +483,8 @@ export default function DailyClosingApp() {
         </div>
       ) : (
         <div className="px-4 md:px-8 space-y-6">
-          {/* TOP: FINANCIAL & SALES BY CATEGORY */}
           <AccordionSection title={t("financial_title")} defaultOpen={false}>
-            {/* Payment Methods with TRX Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               {paymentMethods.map((pm) => (
                 <div key={pm.id} className="flex gap-2 items-end">
                   <div className="flex-1">
@@ -515,8 +507,7 @@ export default function DailyClosingApp() {
               ))}
             </div>
 
-            {/* Expenses */}
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pt-4 border-t border-stone-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pt-4 border-t border-stone-100">
               <UniversalInput
                 type="currency"
                 label="Expenses"
@@ -529,7 +520,7 @@ export default function DailyClosingApp() {
                 value={sales.expenseNote}
                 onChange={(v) => handleSalesInput("expenseNote", v)}
               />
-            </div> */}
+            </div>
 
             <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl text-center font-extrabold text-stone-800 text-xl md:text-2xl shadow-inner mt-4">
               {t("total_revenue")} {formatIDR(totalRevenue)}
@@ -589,7 +580,6 @@ export default function DailyClosingApp() {
             </div>
           </AccordionSection>
 
-          {/* SECOND: PRODUCT CATEGORIES */}
           {categories.map((cat) => {
             const catProducts = activeProducts.filter(
               (p) => p.category_id === cat.id,
@@ -723,7 +713,6 @@ export default function DailyClosingApp() {
             );
           })}
 
-          {/* THIRD: INGREDIENTS INVENTORY */}
           <AccordionSection title={t("ingredients_title")} defaultOpen={false}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {ingredients.map((ing) => {
@@ -783,10 +772,10 @@ export default function DailyClosingApp() {
             </div>
           </AccordionSection>
 
-          {/* BOTTOM: LIVE SUMMARY CARDS */}
+          {/* BOTTOM: LIVE SUMMARY CARDS (Now shows all items, even if 0) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card title={t("live_display_title")} className="h-full">
-              <div className="max-h-56 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-stone-200">
+              <div className="max-h-56 overflow-y-auto space-y-3 pr-2 pb-4 scrollbar-thin scrollbar-thumb-stone-200">
                 {activeProducts.map((p) => {
                   const sisa = getDisplaySisa(
                     inventory[p.id] || {},
@@ -798,7 +787,6 @@ export default function DailyClosingApp() {
                         )
                       : 0,
                   );
-                  if (sisa === 0) return null;
                   return (
                     <div
                       key={p.id}
@@ -812,10 +800,9 @@ export default function DailyClosingApp() {
               </div>
             </Card>
             <Card title={t("live_frozen_title")} className="h-full">
-              <div className="max-h-56 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-stone-200">
+              <div className="max-h-56 overflow-y-auto space-y-3 pr-2 pb-4 scrollbar-thin scrollbar-thumb-stone-200">
                 {activeProducts.map((p) => {
                   const sisa = getFrozenSisa(inventory[p.id] || {});
-                  if (sisa === 0) return null;
                   return (
                     <div
                       key={p.id}
@@ -829,25 +816,24 @@ export default function DailyClosingApp() {
               </div>
             </Card>
             <Card title={t("gramasi_title")} className="h-full">
-              {Object.keys(usedIngredients).length === 0 ? (
+              {ingredients.length === 0 ? (
                 <p className="text-sm text-stone-400 italic">
-                  Input production to see material usage.
+                  No ingredients available.
                 </p>
               ) : (
-                <div className="space-y-3 pr-2 max-h-56 overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200">
-                  {Object.keys(usedIngredients).map((ingId) => {
-                    const ing = ingredients.find((i) => i.id === ingId);
-                    if (!ing) return null;
+                <div className="space-y-3 pr-2 pb-4 max-h-56 overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200">
+                  {ingredients.map((ing) => {
+                    const usage = usedIngredients[ing.id] || 0;
                     return (
                       <div
-                        key={ingId}
+                        key={ing.id}
                         className="flex justify-between text-sm md:text-base border-b border-stone-50 pb-2"
                       >
                         <span className="font-semibold text-stone-600">
                           {ing.name}
                         </span>
                         <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
-                          {usedIngredients[ingId]} {ing.unit}
+                          {usage} {ing.unit}
                         </span>
                       </div>
                     );
@@ -859,9 +845,8 @@ export default function DailyClosingApp() {
         </div>
       )}
 
-      {/* Floating Footer */}
       {selectedOutletId && (
-        <div className="mt-4 w-full max-w-6xl bg-stone-100/90 backdrop-blur-md border-t border-stone-200 p-4 md:p-6 flex flex-col gap-3 shadow-[0_-10px_20px_-5px_rgba(28,25,23,0.05)] z-50">
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-6xl bg-stone-100/90 backdrop-blur-md border-t border-stone-200 p-4 md:p-6 flex flex-col gap-3 shadow-[0_-10px_20px_-5px_rgba(28,25,23,0.05)] z-50">
           <Button
             variant="secondary"
             onClick={() => setIsReviewing(true)}
