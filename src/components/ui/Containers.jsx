@@ -24,7 +24,6 @@ export const Card = ({ title, subtitle, children, className = "" }) => (
 
 export const AccordionSection = ({ title, defaultOpen = false, children }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
-
   return (
     <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden mb-4 transition-all">
       <button
@@ -52,7 +51,8 @@ export const AccordionSection = ({ title, defaultOpen = false, children }) => {
         </span>
       </button>
       <div
-        className={`transition-all duration-300 ease-in-out ${isOpen ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}
+        // FIX: Increased max-h from 5000px to 30000px so massive categories never get chopped off!
+        className={`transition-all duration-500 ease-in-out ${isOpen ? "max-h-[30000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}
       >
         <div className="p-6 border-t border-stone-100 bg-white">{children}</div>
       </div>
