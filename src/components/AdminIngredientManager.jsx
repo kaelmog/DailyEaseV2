@@ -1,6 +1,6 @@
 /**
  * @file AdminIngredientManager.jsx
- * @description Provides full CRUD operations for Ingredients with i18n support.
+ * @description Provides full CRUD operations for Ingredients with Premium POS UI and Alphabetical Sorting.
  */
 "use client";
 import React, { useState, useEffect } from "react";
@@ -20,10 +20,11 @@ export default function AdminIngredientManager() {
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchIngredients = async () => {
+    // FIX: Changed from sort_order to name ascending (A-Z)
     const { data } = await supabase
       .from("ingredients")
       .select("*")
-      .order("sort_order");
+      .order("name", { ascending: true });
     if (data) setIngredients(data);
   };
 
@@ -84,14 +85,14 @@ export default function AdminIngredientManager() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <Card
         title={editingId ? t("ing_title_edit") : t("ing_title_add")}
         subtitle={t("ing_subtitle")}
       >
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col md:flex-row gap-3 items-end mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200"
+          className="flex flex-col md:flex-row gap-4 items-end mb-8 bg-stone-50 p-5 md:p-6 rounded-2xl border border-stone-200 shadow-sm"
         >
           <div className="flex-1 w-full">
             <UniversalInput
@@ -123,9 +124,9 @@ export default function AdminIngredientManager() {
             {editingId && (
               <Button
                 type="button"
-                variant="secondary"
+                variant="ghost"
                 onClick={resetForm}
-                className="flex-1"
+                className="h-[50px] px-4 border border-stone-300"
               >
                 {t("btn_cancel")}
               </Button>
@@ -134,46 +135,50 @@ export default function AdminIngredientManager() {
               type="submit"
               variant="primary"
               isLoading={isLoading}
-              className="flex-1"
+              className="h-[50px] px-8 text-base"
             >
               {editingId ? t("btn_save") : t("btn_add")}
             </Button>
           </div>
         </form>
 
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {ingredients.map((ing) => (
-            <div
-              key={ing.id}
-              className="flex justify-between items-center p-3 border rounded bg-white hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              <div>
-                <span className="font-bold text-gray-800">{ing.name}</span>
-                <span className="text-gray-500 text-sm font-normal ml-1">
-                  ({ing.unit})
-                </span>
+        <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm">
+          <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200">
+            {ingredients.map((ing) => (
+              <div
+                key={ing.id}
+                className="flex justify-between items-center p-4 border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors"
+              >
+                <div>
+                  <span className="font-bold text-stone-800 text-lg">
+                    {ing.name}
+                  </span>
+                  <span className="text-stone-500 text-xs font-bold ml-3 bg-stone-100 px-2.5 py-1 rounded-md tracking-wider uppercase border border-stone-200 shadow-sm">
+                    {ing.unit}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => handleEdit(ing)}
+                    className="text-sm text-amber-600 font-bold hover:text-amber-700 transition-colors"
+                  >
+                    {t("btn_edit")}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(ing.id, ing.name)}
+                    className="text-sm text-red-500 font-bold hover:text-red-700 transition-colors"
+                  >
+                    {t("btn_delete")}
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => handleEdit(ing)}
-                  className="text-xs text-blue-600 font-bold hover:underline"
-                >
-                  {t("btn_edit")}
-                </button>
-                <button
-                  onClick={() => handleDelete(ing.id, ing.name)}
-                  className="text-xs text-red-600 font-bold hover:underline"
-                >
-                  {t("btn_delete")}
-                </button>
-              </div>
-            </div>
-          ))}
-          {ingredients.length === 0 && (
-            <p className="text-center text-gray-500 text-sm italic p-4">
-              {t("ing_empty")}
-            </p>
-          )}
+            ))}
+            {ingredients.length === 0 && (
+              <p className="text-center text-stone-500 text-sm italic p-8">
+                {t("ing_empty")}
+              </p>
+            )}
+          </div>
         </div>
       </Card>
     </div>

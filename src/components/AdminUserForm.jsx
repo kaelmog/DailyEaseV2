@@ -1,10 +1,13 @@
+/**
+ * @file AdminUserForm.jsx
+ * @description Manage users, PINs, and Roles with Premium POS UI.
+ */
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../utils/supabase";
 import { Card } from "./ui/Containers";
 import { UniversalInput } from "./ui/UniversalInput";
 import { Button } from "./ui/BaseComponents";
-import { t } from "../utils/dictionary";
 
 export default function AdminUserForm() {
   const [users, setUsers] = useState([]);
@@ -19,12 +22,8 @@ export default function AdminUserForm() {
   const fetchData = async () => {
     const { data: uData } = await supabase
       .from("app_users")
-      .select("*, outlets(name)")
-      .order("created_at", { ascending: false });
-    const { data: oData } = await supabase
-      .from("outlets")
-      .select("*")
-      .eq("is_active", true);
+      .select("*, outlets(name)");
+    const { data: oData } = await supabase.from("outlets").select("*");
     if (uData) setUsers(uData);
     if (oData) setOutlets(oData);
   };
@@ -34,17 +33,19 @@ export default function AdminUserForm() {
     fetchData();
   }, []);
 
-  const handleCreate = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (pin.length < 4) return alert("PIN minimal 4 angka.");
+
     setIsLoading(true);
-    const { error } = await supabase
-      .from("app_users")
-      .insert([{ username, pin, role, outlet_id: outletId || null }]);
+    const payload = { username, pin, role, outlet_id: outletId || null };
+
+    const { error } = await supabase.from("app_users").insert([payload]);
     setIsLoading(false);
 
     if (error) alert("Error: " + error.message);
     else {
-      alert(t("user_alert_add"));
+      alert("User berhasil ditambahkan!");
       setUsername("");
       setPin("");
       setRole("baker");
@@ -54,91 +55,131 @@ export default function AdminUserForm() {
   };
 
   const handleDelete = async (id, name) => {
-    if (!confirm(t("user_alert_delete"))) return;
+    if (!confirm(`Hapus user ${name}?`)) return;
     await supabase.from("app_users").delete().eq("id", id);
     fetchData();
   };
 
   return (
     <div className="space-y-8">
-      <Card title={t("user_title")} subtitle={t("user_subtitle")}>
+      <Card
+        title="Manajemen Staff & Akses"
+        subtitle="Kelola pengguna, PIN login, dan lokasi penempatan outlet."
+      >
         <form
-          onSubmit={handleCreate}
-          className="space-y-4 mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200"
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end mb-8 bg-stone-50 p-5 md:p-6 rounded-2xl border border-stone-200 shadow-sm"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-1">
             <UniversalInput
-              label={t("user_name")}
+              label="Nama User"
               value={username}
               onChange={setUsername}
               required
-              placeholder={t("user_name_ph")}
             />
-            <UniversalInput label={t("user_pin")} placeholder="Username" />
+          </div>
+          <div className="md:col-span-1">
             <UniversalInput
-              label="Password"
+              label="PIN (Angka)"
               value={pin}
               onChange={setPin}
               required
-              placeholder={t("user_pin_ph")}
+              placeholder="Cth: 123456"
             />
+          </div>
+          <div className="md:col-span-1">
             <UniversalInput
               type="select"
-              label={t("user_role")}
+              label="Role"
               value={role}
               onChange={setRole}
               options={[
-                { id: "baker", name: t("user_role_baker") },
-                { id: "supervisor", name: t("user_role_spv") },
-                { id: "admin", name: t("user_role_admin") },
+                { id: "baker", name: "Baker / Kasir" },
+                { id: "supervisor", name: "Supervisor" },
+                { id: "admin", name: "Admin Pusat" },
               ]}
               required
             />
+          </div>
+          <div className="md:col-span-1">
             <UniversalInput
               type="select"
-              label={t("user_outlet")}
+              label="Penempatan Outlet"
               value={outletId}
               onChange={setOutletId}
               options={outlets}
+              placeholder="(Pilih jika Baker)"
             />
           </div>
-          <div className="text-right">
-            <Button type="submit" variant="primary" isLoading={isLoading}>
-              {t("btn_add")}
+          <div className="md:col-span-1">
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={isLoading}
+              className="h-[50px] w-full"
+            >
+              Tambah Staff
             </Button>
           </div>
         </form>
 
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {users.map((u) => (
-            <div
-              key={u.id}
-              className="flex justify-between items-center p-3 border rounded bg-white hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              <div className="flex flex-col">
-                <span className="font-bold text-gray-800">
-                  {u.username}{" "}
-                  <span className="text-xs text-gray-500 font-normal ml-2">
-                    PIN: {u.pin}
-                  </span>
-                </span>
-                <span className="text-xs text-gray-500 uppercase tracking-wider">
-                  {u.role} • {u.outlets?.name || "All Outlets"}
-                </span>
-              </div>
-              <button
-                onClick={() => handleDelete(u.id, u.username)}
-                className="text-xs text-red-600 font-bold px-2 hover:underline"
-              >
-                {t("btn_delete")}
-              </button>
-            </div>
-          ))}
-          {users.length === 0 && (
-            <p className="text-center text-gray-500 text-sm italic p-4">
-              {t("user_empty")}
-            </p>
-          )}
+        <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-stone-100">
+                <tr className="text-xs text-stone-500 uppercase tracking-wider">
+                  <th className="p-4 border-b border-stone-200 font-bold">
+                    Nama
+                  </th>
+                  <th className="p-4 border-b border-stone-200 font-bold">
+                    PIN
+                  </th>
+                  <th className="p-4 border-b border-stone-200 font-bold">
+                    Role
+                  </th>
+                  <th className="p-4 border-b border-stone-200 font-bold">
+                    Outlet
+                  </th>
+                  <th className="p-4 border-b border-stone-200 font-bold text-right">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {users.map((u) => (
+                  <tr
+                    key={u.id}
+                    className="hover:bg-stone-50 transition-colors"
+                  >
+                    <td className="p-4 font-bold text-stone-800">
+                      {u.username}
+                    </td>
+                    <td className="p-4 font-mono text-stone-600 bg-stone-100 rounded px-2 w-fit inline-block mt-3">
+                      {u.pin}
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`text-xs font-bold px-2.5 py-1 rounded-md tracking-wider uppercase border shadow-sm ${u.role === "admin" ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-stone-100 text-stone-600 border-stone-200"}`}
+                      >
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="p-4 text-stone-600 font-medium text-sm">
+                      {u.outlets?.name || "-"}
+                    </td>
+                    <td className="p-4 text-right">
+                      <button
+                        onClick={() => handleDelete(u.id, u.username)}
+                        className="text-sm text-red-500 hover:text-red-700 font-bold transition-colors"
+                      >
+                        Hapus
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </Card>
     </div>

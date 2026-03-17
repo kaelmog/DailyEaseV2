@@ -1,57 +1,61 @@
-"use client";
+/**
+ * @file Containers.jsx
+ * @description Clean, low-shadow structural components.
+ */
 import React, { useState } from "react";
 
-export const Card = ({ title, subtitle, children, footer, className = "" }) => (
+export const Card = ({ title, subtitle, children, className = "" }) => (
   <div
-    className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}
+    className={`bg-white p-6 rounded-2xl border border-stone-200 shadow-sm ${className}`}
   >
     {(title || subtitle) && (
-      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
-        {title && <h3 className="font-bold text-gray-900">{title}</h3>}
-        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+      <div className="mb-5 border-b border-stone-100 pb-4">
+        {title && (
+          <h2 className="text-xl font-extrabold text-stone-800 tracking-tight">
+            {title}
+          </h2>
+        )}
+        {subtitle && <p className="text-sm text-stone-500 mt-1">{subtitle}</p>}
       </div>
     )}
-    <div className="p-4">{children}</div>
-    {footer && (
-      <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
-        {footer}
-      </div>
-    )}
+    {children}
   </div>
 );
 
-export const AccordionSection = ({
-  title,
-  children,
-  defaultOpen = false,
-  badgeCount = 0,
-}) => {
+export const AccordionSection = ({ title, defaultOpen = false, children }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="mb-4 border border-gray-200 rounded-lg shadow-sm bg-white overflow-hidden">
+    <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden mb-4 transition-all">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 bg-gray-50 flex justify-between items-center hover:bg-gray-100 transition-colors"
+        className="w-full px-6 py-5 flex justify-between items-center bg-white hover:bg-stone-50 transition-colors focus:outline-none"
       >
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-gray-800 text-lg">{title}</span>
-          {badgeCount > 0 && (
-            <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full">
-              {badgeCount}
-            </span>
-          )}
-        </div>
+        <h2 className="text-lg font-bold text-stone-800">{title}</h2>
         <span
-          className={`transform transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`text-stone-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
         >
-          ▼
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
         </span>
       </button>
-      {isOpen && (
-        <div className="p-4 border-t border-gray-100 bg-white">{children}</div>
-      )}
+      <div
+        className={`transition-all duration-300 ease-in-out ${isOpen ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}
+      >
+        <div className="p-6 border-t border-stone-100 bg-white">{children}</div>
+      </div>
     </div>
   );
 };

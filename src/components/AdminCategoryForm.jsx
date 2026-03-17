@@ -1,3 +1,7 @@
+/**
+ * @file AdminCategoryForm.jsx
+ * @description Provides CRUD operations for Categories with Premium POS UI.
+ */
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../utils/supabase";
@@ -77,14 +81,14 @@ export default function AdminCategoryForm() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <Card
         title={editingId ? t("cat_title_edit") : t("cat_title_add")}
         subtitle={t("cat_subtitle")}
       >
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col md:flex-row gap-3 items-end mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200"
+          className="flex flex-col md:flex-row gap-4 items-end mb-8 bg-stone-50 p-5 md:p-6 rounded-2xl border border-stone-200 shadow-sm"
         >
           <div className="flex-1 w-full">
             <UniversalInput
@@ -105,44 +109,58 @@ export default function AdminCategoryForm() {
           </div>
           <div className="flex gap-2 w-full md:w-auto">
             {editingId && (
-              <Button type="button" variant="secondary" onClick={resetForm}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={resetForm}
+                className="h-[50px] px-4 border border-stone-300"
+              >
                 {t("btn_cancel")}
               </Button>
             )}
-            <Button type="submit" variant="primary" isLoading={isLoading}>
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={isLoading}
+              className="h-[50px] px-8 text-base"
+            >
               {editingId ? t("btn_save") : t("btn_add")}
             </Button>
           </div>
         </form>
 
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {categories.map((cat) => (
-            <div
-              key={cat.id}
-              className="flex justify-between items-center p-3 border rounded bg-white hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              <span className="font-bold text-gray-800">{cat.name}</span>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => handleEdit(cat)}
-                  className="text-xs text-blue-600 font-bold hover:underline"
-                >
-                  {t("btn_edit")}
-                </button>
-                <button
-                  onClick={() => handleDelete(cat.id, cat.name)}
-                  className="text-xs text-red-600 font-bold hover:underline"
-                >
-                  {t("btn_delete")}
-                </button>
+        <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm">
+          <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200">
+            {categories.map((cat) => (
+              <div
+                key={cat.id}
+                className="flex justify-between items-center p-4 border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors"
+              >
+                <span className="font-bold text-stone-800 text-lg">
+                  {cat.name}
+                </span>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => handleEdit(cat)}
+                    className="text-sm text-amber-600 font-bold hover:text-amber-700 transition-colors"
+                  >
+                    {t("btn_edit")}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(cat.id, cat.name)}
+                    className="text-sm text-red-500 font-bold hover:text-red-700 transition-colors"
+                  >
+                    {t("btn_delete")}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-          {categories.length === 0 && (
-            <p className="text-center text-gray-500 text-sm italic p-4">
-              {t("cat_empty")}
-            </p>
-          )}
+            ))}
+            {categories.length === 0 && (
+              <p className="text-center text-stone-500 text-sm italic p-8">
+                {t("cat_empty")}
+              </p>
+            )}
+          </div>
         </div>
       </Card>
     </div>

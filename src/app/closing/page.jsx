@@ -1,10 +1,10 @@
 /**
  * @file page.jsx (Closing Form)
- * @description Fully responsive shift closing interface, reordered for better UX flow with updated header.
+ * @description Fully responsive shift closing interface, reordered for better UX flow with Premium UI.
  */
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation"; // Added router for the Back button
+import { useRouter } from "next/navigation";
 import { supabase } from "../../utils/supabase";
 import { useAutoSave } from "../../hooks/useAutoSave";
 import { AccordionSection, Card } from "../../components/ui/Containers";
@@ -29,7 +29,7 @@ import { t } from "../../utils/dictionary";
 
 export default function DailyClosingApp() {
   const { user } = useAuth();
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
   const [isReady, setIsReady] = useState(false);
   const [isReviewing, setIsReviewing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -187,7 +187,7 @@ export default function DailyClosingApp() {
     if (error) alert("Error saving shift: " + error.message);
     else {
       alert("Shift saved to database!");
-      setIsReviewing(false); // Close modal on success
+      setIsReviewing(false);
     }
   };
 
@@ -200,7 +200,7 @@ export default function DailyClosingApp() {
     !ingInvHydrated
   ) {
     return (
-      <div className="min-h-screen flex items-center justify-center font-bold text-gray-500">
+      <div className="min-h-screen bg-stone-100 flex items-center justify-center font-bold text-stone-500">
         {t("loading")}
       </div>
     );
@@ -212,18 +212,18 @@ export default function DailyClosingApp() {
   if (isReviewing) {
     const isCinere = currentOutlet.name.toLowerCase().includes("cinere");
     return (
-      <div className="max-w-7xl mx-auto min-h-screen bg-gray-100 pb-28 shadow-xl">
-        <div className="bg-gray-900 text-white p-6 md:p-8 shadow-md mb-2">
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+      <div className="max-w-7xl mx-auto min-h-screen bg-stone-100 pb-28 shadow-xl">
+        <div className="bg-stone-900 text-stone-50 p-6 md:p-8 shadow-md mb-2 border-b-4 border-amber-600">
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
             {t("review_title")}
           </h1>
-          <p className="text-gray-400 text-sm md:text-base">
+          <p className="text-stone-400 text-sm md:text-base">
             {t("review_subtitle")}
           </p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 md:px-8 pt-4">
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col">
-            <h3 className="font-bold text-gray-800 mb-2">{t("report_1")}</h3>
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-stone-200 flex flex-col">
+            <h3 className="font-bold text-stone-800 mb-2">{t("report_1")}</h3>
             <textarea
               readOnly
               value={generateSalesReport(
@@ -233,7 +233,7 @@ export default function DailyClosingApp() {
                 totalRevenue,
                 currentOutlet.name,
               )}
-              className="w-full flex-grow h-64 lg:h-96 p-3 text-xs md:text-sm font-mono bg-gray-50 border rounded mb-4 focus:outline-none"
+              className="w-full flex-grow h-64 lg:h-96 p-3 text-xs md:text-sm font-mono bg-stone-50 border border-stone-200 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-stone-100 text-stone-700"
             />
             <div className="flex gap-2 mt-auto">
               <Button
@@ -249,12 +249,12 @@ export default function DailyClosingApp() {
                     ),
                   )
                 }
-                className="flex-1 py-2"
+                className="flex-1 py-3"
               >
                 {t("btn_copy")}
               </Button>
               <Button
-                variant="primary"
+                variant="success"
                 onClick={() =>
                   handleShareWA(
                     generateSalesReport(
@@ -266,15 +266,15 @@ export default function DailyClosingApp() {
                     ),
                   )
                 }
-                className="flex-1 py-2 bg-green-600 hover:bg-green-700"
+                className="flex-1 py-3"
               >
                 {t("btn_wa")}
               </Button>
             </div>
           </div>
           {!isCinere && (
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col">
-              <h3 className="font-bold text-gray-800 mb-2">{t("report_2")}</h3>
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-stone-200 flex flex-col">
+              <h3 className="font-bold text-stone-800 mb-2">{t("report_2")}</h3>
               <textarea
                 readOnly
                 value={generateProductSales(
@@ -283,7 +283,7 @@ export default function DailyClosingApp() {
                   inventory,
                   currentOutlet.name,
                 )}
-                className="w-full flex-grow h-64 lg:h-96 p-3 text-xs md:text-sm font-mono bg-gray-50 border rounded mb-4 focus:outline-none"
+                className="w-full flex-grow h-64 lg:h-96 p-3 text-xs md:text-sm font-mono bg-stone-50 border border-stone-200 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-stone-100 text-stone-700"
               />
               <div className="flex gap-2 mt-auto">
                 <Button
@@ -298,12 +298,12 @@ export default function DailyClosingApp() {
                       ),
                     )
                   }
-                  className="flex-1 py-2"
+                  className="flex-1 py-3"
                 >
                   {t("btn_copy")}
                 </Button>
                 <Button
-                  variant="primary"
+                  variant="success"
                   onClick={() =>
                     handleShareWA(
                       generateProductSales(
@@ -314,15 +314,15 @@ export default function DailyClosingApp() {
                       ),
                     )
                   }
-                  className="flex-1 py-2 bg-green-600 hover:bg-green-700"
+                  className="flex-1 py-3"
                 >
                   {t("btn_wa")}
                 </Button>
               </div>
             </div>
           )}
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col">
-            <h3 className="font-bold text-gray-800 mb-2">
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-stone-200 flex flex-col">
+            <h3 className="font-bold text-stone-800 mb-2">
               {isCinere ? t("report_3_cinere") : t("report_3_normal")}
             </h3>
             <textarea
@@ -335,7 +335,7 @@ export default function DailyClosingApp() {
                 usedIngredients,
                 currentOutlet.name,
               )}
-              className="w-full flex-grow h-64 lg:h-96 p-3 text-xs md:text-sm font-mono bg-gray-50 border rounded mb-4 focus:outline-none"
+              className="w-full flex-grow h-64 lg:h-96 p-3 text-xs md:text-sm font-mono bg-stone-50 border border-stone-200 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-stone-100 text-stone-700"
             />
             <div className="flex gap-2 mt-auto">
               <Button
@@ -352,12 +352,12 @@ export default function DailyClosingApp() {
                     ),
                   )
                 }
-                className="flex-1 py-2"
+                className="flex-1 py-3"
               >
                 {t("btn_copy")}
               </Button>
               <Button
-                variant="primary"
+                variant="success"
                 onClick={() =>
                   handleShareWA(
                     generateFrozenDisplay(
@@ -370,18 +370,18 @@ export default function DailyClosingApp() {
                     ),
                   )
                 }
-                className="flex-1 py-2 bg-green-600 hover:bg-green-700"
+                className="flex-1 py-3"
               >
                 {t("btn_wa")}
               </Button>
             </div>
           </div>
         </div>
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-7xl bg-white border-t p-4 flex justify-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-7xl bg-white border-t border-stone-200 p-4 flex justify-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50">
           <Button
             variant="secondary"
             onClick={() => setIsReviewing(false)}
-            className="w-full md:w-1/2 py-3 shadow-md font-bold text-gray-700"
+            className="w-full md:w-1/2 py-4 shadow-sm font-bold"
           >
             {t("btn_back")}
           </Button>
@@ -394,16 +394,19 @@ export default function DailyClosingApp() {
   // INPUT SCREEN
   // ==========================================
   return (
-    <div className="max-w-6xl mx-auto min-h-screen bg-gray-100 pb-36 shadow-2xl relative">
-      {/* --- REBUILT HEADER --- */}
-      <div className="bg-blue-900 text-white p-6 md:p-8 shadow-md mb-6 relative">
+    <div className="max-w-6xl mx-auto min-h-screen bg-stone-100 pb-36 shadow-2xl relative">
+      {/* --- PREMIUM BESPOKE HEADER --- */}
+      <div className="bg-stone-900 text-stone-50 p-6 md:p-8 shadow-md mb-6 relative border-b-4 border-amber-600">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-            {t("app_title")}
-          </h1>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">🌾</span>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+              {t("app_title")}
+            </h1>
+          </div>
           <button
             onClick={() => router.push("/")}
-            className="bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm md:text-base transition-colors shadow-sm flex items-center gap-2"
+            className="bg-stone-800 hover:bg-stone-700 text-stone-200 px-4 py-2 rounded-xl font-bold text-sm md:text-base transition-colors flex items-center gap-2"
           >
             {t("btn_back")}
           </button>
@@ -411,14 +414,14 @@ export default function DailyClosingApp() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-blue-200 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">
               Outlet
             </label>
             <div className="relative">
               <select
                 value={selectedOutletId}
                 onChange={(e) => setSelectedOutletId(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-bold bg-white shadow-inner appearance-none cursor-pointer"
+                className="w-full px-4 py-3 rounded-xl border border-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500 text-white font-bold bg-stone-800 appearance-none cursor-pointer transition-colors"
               >
                 <option value="" disabled>
                   {t("select_outlet")}
@@ -429,7 +432,7 @@ export default function DailyClosingApp() {
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400">
                 <svg
                   className="fill-current h-4 w-4"
                   xmlns="http://www.w3.org/2000/svg"
@@ -441,14 +444,14 @@ export default function DailyClosingApp() {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-bold text-blue-200 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">
               {t("date_label")}
             </label>
             <input
               type="date"
               value={reportDate}
               onChange={(e) => setReportDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-bold bg-white shadow-inner cursor-pointer"
+              className="w-full px-4 py-3 rounded-xl border border-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500 text-white font-bold bg-stone-800 cursor-pointer transition-colors [color-scheme:dark]"
             />
           </div>
         </div>
@@ -457,7 +460,7 @@ export default function DailyClosingApp() {
 
       {!selectedOutletId ? (
         <div className="px-4 text-center mt-10">
-          <p className="text-gray-500 font-bold text-lg md:text-xl">
+          <p className="text-stone-500 font-bold text-lg md:text-xl">
             {t("select_prompt")}
           </p>
         </div>
@@ -534,7 +537,7 @@ export default function DailyClosingApp() {
               onChange={(v) => handleSalesInput("expenseNote", v)}
               className="mb-4"
             />
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center font-extrabold text-green-800 text-xl md:text-2xl shadow-inner">
+            <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl text-center font-extrabold text-stone-800 text-xl md:text-2xl shadow-inner">
               {t("total_revenue")} {formatIDR(totalRevenue)}
             </div>
           </AccordionSection>
@@ -617,17 +620,17 @@ export default function DailyClosingApp() {
                     return (
                       <div
                         key={prod.id}
-                        className="p-4 bg-white shadow-sm border border-gray-300 rounded-xl hover:shadow-md transition-shadow"
+                        className="p-5 bg-white shadow-sm border border-stone-200 rounded-2xl hover:shadow-md transition-shadow"
                       >
-                        <div className="font-bold text-gray-900 text-lg md:text-xl mb-4 border-b pb-2">
+                        <div className="font-bold text-stone-900 text-lg md:text-xl mb-4 border-b border-stone-100 pb-2">
                           {prod.name}
                         </div>
 
-                        <div className="mb-5 bg-blue-50 p-3 rounded-lg border border-blue-100">
-                          <span className="text-sm font-bold text-blue-800 uppercase mb-3 block">
+                        <div className="mb-5 bg-stone-50 p-4 rounded-xl border border-stone-100">
+                          <span className="text-sm font-bold text-stone-700 uppercase mb-3 block tracking-wide">
                             {t("frozen_book")}
                           </span>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <UniversalInput
                               type="number"
                               label={t("start")}
@@ -663,16 +666,17 @@ export default function DailyClosingApp() {
                           </div>
                         </div>
 
-                        <div className="bg-orange-50 p-3 rounded-lg border border-orange-100">
-                          <span className="text-sm font-bold text-orange-800 uppercase mb-3 block">
+                        <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100/50">
+                          <span className="text-sm font-bold text-amber-800 uppercase mb-3 block tracking-wide">
                             {t("display_book")}
                           </span>
                           {prod.is_base && shapingDeduction > 0 && (
-                            <div className="text-xs md:text-sm text-orange-700 font-bold mb-3 bg-orange-100 p-2 rounded border border-orange-200">
-                              ⚙️ -{shapingDeduction} {t("shaping_deducted")}
+                            <div className="text-xs md:text-sm text-amber-800 font-bold mb-3 bg-amber-100 p-2.5 rounded-lg border border-amber-200 flex items-center gap-2">
+                              <span>⚙️</span> -{shapingDeduction}{" "}
+                              {t("shaping_deducted")}
                             </div>
                           )}
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
                             <UniversalInput
                               type="number"
                               label={t("start")}
@@ -727,7 +731,7 @@ export default function DailyClosingApp() {
 
           {/* THIRD: INGREDIENTS INVENTORY */}
           <AccordionSection title={t("ingredients_title")} defaultOpen={false}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {ingredients.map((ing) => {
                 const data = ingredientInv[ing.id] || {};
                 const sisa =
@@ -738,22 +742,22 @@ export default function DailyClosingApp() {
                 return (
                   <div
                     key={ing.id}
-                    className="p-4 bg-white border border-gray-300 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                    className="p-5 bg-white border border-stone-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow"
                   >
-                    <div className="flex justify-between items-center font-bold mb-3 border-b pb-2">
-                      <span className="text-gray-800">
+                    <div className="flex justify-between items-center font-bold mb-4 border-b border-stone-100 pb-2">
+                      <span className="text-stone-800">
                         {ing.name}{" "}
-                        <span className="text-gray-500 font-normal text-xs md:text-sm">
+                        <span className="text-stone-400 font-normal text-xs md:text-sm">
                           ({ing.unit})
                         </span>
                       </span>
                       <span
-                        className={`text-xs md:text-sm px-2 py-1 rounded-full ${sisa < 0 ? "bg-red-200 text-red-800" : "bg-blue-100 text-blue-800"}`}
+                        className={`text-xs md:text-sm px-3 py-1 rounded-full font-bold ${sisa < 0 ? "bg-red-50 text-red-600 border border-red-100" : "bg-stone-100 text-stone-700"}`}
                       >
                         {t("sisa")}: {sisa}
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       <UniversalInput
                         type="number"
                         label={t("start")}
@@ -788,7 +792,7 @@ export default function DailyClosingApp() {
           {/* BOTTOM: LIVE SUMMARY CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card title={t("live_display_title")} className="h-full">
-              <div className="max-h-56 overflow-y-auto space-y-2 pr-2">
+              <div className="max-h-56 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-stone-200">
                 {activeProducts.map((p) => {
                   const sisa = getDisplaySisa(
                     inventory[p.id] || {},
@@ -804,27 +808,27 @@ export default function DailyClosingApp() {
                   return (
                     <div
                       key={p.id}
-                      className="text-sm md:text-base flex justify-between border-b border-gray-100 pb-1"
+                      className="text-sm md:text-base flex justify-between border-b border-stone-50 pb-2"
                     >
-                      <span>{p.name}</span>
-                      <span className="font-bold text-orange-700">{sisa}</span>
+                      <span className="text-stone-600">{p.name}</span>
+                      <span className="font-bold text-stone-900">{sisa}</span>
                     </div>
                   );
                 })}
               </div>
             </Card>
             <Card title={t("live_frozen_title")} className="h-full">
-              <div className="max-h-56 overflow-y-auto space-y-2 pr-2">
+              <div className="max-h-56 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-stone-200">
                 {activeProducts.map((p) => {
                   const sisa = getFrozenSisa(inventory[p.id] || {});
                   if (sisa === 0) return null;
                   return (
                     <div
                       key={p.id}
-                      className="text-sm md:text-base flex justify-between border-b border-gray-100 pb-1"
+                      className="text-sm md:text-base flex justify-between border-b border-stone-50 pb-2"
                     >
-                      <span>{p.name}</span>
-                      <span className="font-bold text-blue-700">{sisa}</span>
+                      <span className="text-stone-600">{p.name}</span>
+                      <span className="font-bold text-stone-900">{sisa}</span>
                     </div>
                   );
                 })}
@@ -832,23 +836,23 @@ export default function DailyClosingApp() {
             </Card>
             <Card title={t("gramasi_title")} className="h-full">
               {Object.keys(usedIngredients).length === 0 ? (
-                <p className="text-sm text-gray-500 italic">
+                <p className="text-sm text-stone-400 italic">
                   Input production to see material usage.
                 </p>
               ) : (
-                <div className="space-y-2 pr-2 max-h-56 overflow-y-auto">
+                <div className="space-y-3 pr-2 max-h-56 overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200">
                   {Object.keys(usedIngredients).map((ingId) => {
                     const ing = ingredients.find((i) => i.id === ingId);
                     if (!ing) return null;
                     return (
                       <div
                         key={ingId}
-                        className="flex justify-between text-sm md:text-base border-b border-gray-100 pb-1"
+                        className="flex justify-between text-sm md:text-base border-b border-stone-50 pb-2"
                       >
-                        <span className="font-semibold text-gray-700">
+                        <span className="font-semibold text-stone-600">
                           {ing.name}
                         </span>
-                        <span className="font-bold text-green-700">
+                        <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
                           {usedIngredients[ingId]} {ing.unit}
                         </span>
                       </div>
@@ -863,19 +867,19 @@ export default function DailyClosingApp() {
 
       {/* Floating Footer */}
       {selectedOutletId && (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-6xl bg-white border-t p-4 flex flex-col gap-2 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] z-50">
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-6xl bg-stone-100/90 backdrop-blur-md border-t border-stone-200 p-4 md:p-6 flex flex-col gap-3 shadow-[0_-10px_20px_-5px_rgba(28,25,23,0.05)] z-50">
           <Button
             variant="secondary"
             onClick={() => setIsReviewing(true)}
-            className="w-full py-3 md:py-4 shadow-sm text-lg font-bold rounded-xl transition-colors"
+            className="w-full py-4 text-lg font-bold"
           >
             {t("btn_review")}
           </Button>
           <Button
-            variant="primary"
+            variant="success"
             onClick={submitShift}
             isLoading={isSubmitting}
-            className="w-full py-3 md:py-4 shadow-md text-lg font-bold rounded-xl hover:scale-[1.01] transition-transform"
+            className="w-full py-4 text-lg font-bold"
           >
             {t("btn_submit_db")}
           </Button>

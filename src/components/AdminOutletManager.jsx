@@ -1,130 +1,138 @@
+/**
+ * @file AdminOutletManager.jsx
+ * @description Manage outlets and their active menus with Premium POS UI.
+ */
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../utils/supabase";
 import { Card } from "./ui/Containers";
 import { UniversalInput } from "./ui/UniversalInput";
 import { Button } from "./ui/BaseComponents";
-import { t } from "../utils/dictionary";
 
 export default function AdminOutletManager() {
   const [outlets, setOutlets] = useState([]);
   const [products, setProducts] = useState([]);
+  const [outletProductsMap, setOutletProductsMap] = useState([]);
 
-  const [outletName, setOutletName] = useState("");
+  const [name, setName] = useState("");
   const [outletType, setOutletType] = useState("fresh_bake");
-
-  const [selectedOutletId, setSelectedOutletId] = useState("");
-  const [outletProductIds, setOutletProductIds] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedOutletId, setSelectedOutletId] = useState("");
 
-  const fetchData = async () => {
-    const { data: o } = await supabase
+  const fetchAll = async () => {
+    const { data: oData } = await supabase
       .from("outlets")
       .select("*")
       .order("name");
-    const { data: p } = await supabase
+    const { data: pData } = await supabase
       .from("products")
-      .select("id, name, category_id, product_categories(name)")
-      .eq("is_active", true)
+      .select("*")
       .order("sort_order");
-    if (o) setOutlets(o);
-    if (p) setProducts(p);
+    const { data: opData } = await supabase.from("outlet_products").select("*");
+    if (oData) setOutlets(oData);
+    if (pData) setProducts(pData);
+    if (opData) setOutletProductsMap(opData);
   };
 
   useEffect(() => {
     // eslint-disable-next-line
-    fetchData();
+    fetchAll();
   }, []);
 
-  useEffect(() => {
-    async function fetchOutletDetails() {
-      if (!selectedOutletId) {
-        setOutletProductIds([]);
-        return;
-      }
-      const { data } = await supabase
-        .from("outlet_products")
-        .select("product_id")
-        .eq("outlet_id", selectedOutletId);
-      if (data) setOutletProductIds(data.map((d) => d.product_id));
-    }
-    fetchOutletDetails();
-  }, [selectedOutletId]);
-
-  const handleCreateOutlet = async (e) => {
+  const handleAddOutlet = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     const { error } = await supabase
       .from("outlets")
-      .insert([{ name: outletName, outlet_type: outletType, is_active: true }]);
+      .insert([{ name, outlet_type: outletType }]);
     setIsLoading(false);
-
-    if (error) alert("Error: " + error.message);
+    if (error) alert(error.message);
     else {
-      alert("Outlet created!");
-      setOutletName("");
-      fetchData();
+      alert("Outlet added!");
+      setName("");
+      fetchAll();
     }
   };
 
-  const toggleOutletActive = async (id, currentStatus) => {
-    const newStatus = currentStatus === true ? false : true;
+  const toggleOutletStatus = async (id, currentStatus) => {
     await supabase
       .from("outlets")
-      .update({ is_active: newStatus })
+      .update({ is_active: !currentStatus })
       .eq("id", id);
-    fetchData();
+    fetchAll();
   };
 
-  const handleDeleteOutlet = async (id, name) => {
-    if (!confirm(`Delete outlet ${name} permanently?`)) return;
+  const deleteOutlet = async (id) => {
+    if (!confirm("Hapus outlet ini? (Pastikan tidak ada report yang terikat)"))
+      return;
     await supabase.from("outlets").delete().eq("id", id);
     if (selectedOutletId === id) setSelectedOutletId("");
-    fetchData();
+    fetchAll();
   };
 
-  const handleToggleProduct = async (productId) => {
-    if (!selectedOutletId) return alert("Select an outlet first.");
-    const isMapped = outletProductIds.includes(productId);
-    if (isMapped) {
+  const toggleProductInOutlet = async (productId, currentStatus) => {
+    if (!selectedOutletId) return;
+    if (currentStatus) {
       await supabase
         .from("outlet_products")
         .delete()
         .match({ outlet_id: selectedOutletId, product_id: productId });
-      setOutletProductIds((prev) => prev.filter((id) => id !== productId));
     } else {
       await supabase
         .from("outlet_products")
         .insert([{ outlet_id: selectedOutletId, product_id: productId }]);
-      setOutletProductIds((prev) => [...prev, productId]);
     }
+    fetchAll();
+  };
+
+  const toggleAllProducts = async (enableAll) => {
+    if (!selectedOutletId) return;
+    if (enableAll) {
+      const inserts = products.map((p) => ({
+        outlet_id: selectedOutletId,
+        product_id: p.id,
+      }));
+      await supabase
+        .from("outlet_products")
+        .upsert(inserts, { onConflict: "outlet_id,product_id" });
+    } else {
+      await supabase
+        .from("outlet_products")
+        .delete()
+        .eq("outlet_id", selectedOutletId);
+    }
+    fetchAll();
   };
 
   return (
     <div className="space-y-8">
-      <Card title={t("out_title_1")} subtitle={t("out_sub_1")}>
+      {/* Outlet Creation Card */}
+      <Card
+        title="Kelola Outlet"
+        subtitle="Buat, nonaktifkan, atau hapus lokasi cabang."
+      >
         <form
-          onSubmit={handleCreateOutlet}
-          className="flex flex-col md:flex-row gap-3 items-end mb-6"
+          onSubmit={handleAddOutlet}
+          className="flex flex-col md:flex-row gap-4 items-end mb-8 bg-stone-50 p-5 md:p-6 rounded-2xl border border-stone-200 shadow-sm"
         >
           <div className="flex-1 w-full">
             <UniversalInput
-              label={t("out_name")}
-              value={outletName}
-              onChange={setOutletName}
+              label="Nama Outlet"
+              value={name}
+              onChange={setName}
+              placeholder="cth., RS Puri Cinere"
               required
-              placeholder={t("out_name_ph")}
             />
           </div>
-          <div className="flex-1 w-full">
+          <div className="w-full md:w-64">
             <UniversalInput
               type="select"
-              label={t("out_type")}
+              label="Tipe Outlet"
               value={outletType}
               onChange={setOutletType}
               options={[
-                { id: "fresh_bake", name: t("out_type_fresh") },
-                { id: "frozen_goods", name: t("out_type_frozen") },
+                { id: "fresh_bake", name: "Fresh Bake" },
+                { id: "frozen_goods", name: "Frozen Goods" },
               ]}
               required
             />
@@ -133,36 +141,38 @@ export default function AdminOutletManager() {
             type="submit"
             variant="primary"
             isLoading={isLoading}
-            className="w-full md:w-auto"
+            className="h-[50px] px-8 w-full md:w-auto"
           >
-            {t("out_btn_add")}
+            Tambah Outlet
           </Button>
         </form>
 
-        <div className="space-y-2">
+        <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm">
           {outlets.map((o) => (
             <div
               key={o.id}
-              className={`flex justify-between items-center p-3 border rounded ${!o.is_active && "bg-gray-50 opacity-60"}`}
+              className={`flex justify-between items-center p-4 border-b border-stone-100 last:border-0 transition-colors ${!o.is_active ? "bg-stone-50 opacity-60" : "hover:bg-stone-50"}`}
             >
               <div>
-                <span className="font-bold">{o.name}</span>
-                <span className="ml-3 text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded uppercase font-bold tracking-wider">
-                  {o.outlet_type.replace("_", " ")}
+                <span className="font-bold text-stone-800 text-lg">
+                  {o.name}
+                </span>
+                <span className="text-blue-600 text-xs font-bold ml-3 bg-blue-50 px-2.5 py-1 rounded-md tracking-wider uppercase border border-blue-100">
+                  {o.outlet_type?.replace("_", " ")}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 <button
-                  onClick={() => toggleOutletActive(o.id, o.is_active)}
-                  className={`text-xs px-3 py-1 rounded font-bold shadow-sm ${o.is_active ? "bg-green-100 text-green-700" : "bg-gray-300 text-gray-800"}`}
+                  onClick={() => toggleOutletStatus(o.id, o.is_active)}
+                  className={`text-xs px-3 py-1.5 rounded-md font-bold transition-transform hover:scale-105 border shadow-sm ${o.is_active ? "bg-green-50 text-green-700 border-green-200" : "bg-stone-200 text-stone-600 border-stone-300"}`}
                 >
-                  {o.is_active ? t("out_active") : t("out_disabled")}
+                  {o.is_active ? "Aktif" : "Nonaktif"}
                 </button>
                 <button
-                  onClick={() => handleDeleteOutlet(o.id, o.name)}
-                  className="text-xs text-red-600 font-bold px-2 hover:underline"
+                  onClick={() => deleteOutlet(o.id)}
+                  className="text-sm text-red-500 font-bold hover:text-red-700 transition-colors"
                 >
-                  {t("btn_delete")}
+                  Hapus
                 </button>
               </div>
             </div>
@@ -170,47 +180,68 @@ export default function AdminOutletManager() {
         </div>
       </Card>
 
-      <hr />
-
-      <Card title={t("out_title_2")} subtitle={t("out_sub_2")}>
-        <UniversalInput
-          type="select"
-          label={t("out_select")}
-          value={selectedOutletId}
-          onChange={setSelectedOutletId}
-          options={outlets.filter((o) => o.is_active)}
-          className="mb-6"
-        />
+      {/* Outlet Menu Configuration Card */}
+      <Card
+        title="Konfigurasi Menu Outlet"
+        subtitle="Pilih produk yang tersedia untuk dijual dan dihitung sisa stoknya di outlet tertentu."
+      >
+        <div className="mb-6">
+          <UniversalInput
+            type="select"
+            label="Pilih Outlet untuk Dikonfigurasi"
+            value={selectedOutletId}
+            onChange={setSelectedOutletId}
+            options={outlets.filter((o) => o.is_active)}
+          />
+        </div>
 
         {selectedOutletId && (
-          <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
-            <h3 className="font-bold text-gray-800 mb-2">
-              {t("out_avail_prods")}
-            </h3>
-            <p className="text-sm text-gray-500 mb-4">{t("out_avail_desc")}</p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto p-2 bg-gray-50 border rounded">
-              {products.map((p) => (
-                <label
-                  key={p.id}
-                  className="flex items-center gap-3 p-3 bg-white hover:bg-blue-50 cursor-pointer border rounded shadow-sm transition-colors"
+          <div className="bg-white border border-stone-200 rounded-2xl shadow-sm p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-stone-100 pb-4">
+              <h3 className="font-extrabold text-stone-800 text-lg">
+                Daftar Produk
+              </h3>
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => toggleAllProducts(true)}
+                  className="text-xs py-2 px-4"
                 >
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                    checked={outletProductIds.includes(p.id)}
-                    onChange={() => handleToggleProduct(p.id)}
-                  />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-800">
+                  Pilih Semua
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => toggleAllProducts(false)}
+                  className="text-xs py-2 px-4 border border-stone-200"
+                >
+                  Hapus Semua
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-stone-200 pr-2">
+              {products.map((p) => {
+                const isActive = outletProductsMap.some(
+                  (op) =>
+                    op.outlet_id === selectedOutletId && op.product_id === p.id,
+                );
+                return (
+                  <label
+                    key={p.id}
+                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isActive ? "bg-amber-50/50 border-amber-200" : "bg-stone-50 border-stone-200 opacity-60 hover:opacity-100"}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isActive}
+                      onChange={() => toggleProductInOutlet(p.id, isActive)}
+                      className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
+                    />
+                    <span className="font-bold text-stone-800 text-sm">
                       {p.name}
                     </span>
-                    <span className="text-xs text-gray-500">
-                      {p.product_categories?.name}
-                    </span>
-                  </div>
-                </label>
-              ))}
+                  </label>
+                );
+              })}
             </div>
           </div>
         )}

@@ -1,12 +1,13 @@
 /**
  * @file page.jsx (History)
- * @description Fully responsive view for past shift reports with robust filters.
+ * @description Fully responsive view for past shift reports with Premium POS UI and robust filters.
  */
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../utils/supabase";
 import { Card } from "../../components/ui/Containers";
 import { UniversalInput } from "../../components/ui/UniversalInput";
+import { Button } from "../../components/ui/BaseComponents";
 import { useAuth } from "../../components/AuthProvider";
 import { formatIDR, calculateTotalRevenue } from "../../utils/closingMath";
 import { t } from "../../utils/dictionary";
@@ -90,25 +91,33 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-6 md:py-10 px-4">
+    <div className="min-h-screen bg-stone-100 py-6 md:py-10 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900">
-            {t("dash_history")}
-          </h1>
-          <button
-            onClick={() => router.push("/")}
-            className="text-blue-600 font-bold hover:underline md:text-lg"
-          >
-            {t("btn_back")}
-          </button>
+        {/* PREMIUM HEADER */}
+        <div className="bg-stone-900 text-stone-50 p-6 md:p-8 shadow-md mb-6 md:mb-8 relative border-b-4 border-amber-600 rounded-2xl">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl hidden md:inline">🕰️</span>
+              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+                {t("dash_history")}
+              </h1>
+            </div>
+            <button
+              onClick={() => router.push("/")}
+              className="bg-stone-800 hover:bg-stone-700 text-stone-200 px-4 py-2 rounded-xl font-bold text-sm md:text-base transition-colors flex items-center gap-2 shadow-sm"
+            >
+              {t("btn_back")}
+            </button>
+          </div>
         </div>
 
+        {/* FILTER CARD */}
         <Card className="mb-6 md:mb-8 shadow-sm">
-          <h2 className="font-bold text-gray-800 mb-4 text-lg">
+          <h2 className="font-bold text-stone-800 mb-5 text-lg">
             Periode Laporan
           </h2>
-          <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4">
+
+          <div className="flex flex-wrap gap-2 mb-6 border-b border-stone-200 pb-5">
             {[
               { id: "today", label: t("filter_today") },
               { id: "week", label: t("filter_week") },
@@ -118,40 +127,38 @@ export default function HistoryPage() {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`px-4 py-2 text-sm font-bold rounded-full transition-colors ${activeTab === tab.id ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
+                className={`px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? "bg-stone-900 text-white shadow-sm transform translate-y-[1px]"
+                    : "bg-stone-50 text-stone-600 hover:bg-stone-200 hover:text-stone-800 border border-stone-200"
+                }`}
               >
                 {tab.label}
               </button>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 items-end">
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                {t("filter_start")}
-              </label>
-              <input
+              <UniversalInput
                 type="date"
+                label={t("filter_start")}
                 value={dateFrom}
-                onChange={(e) => {
-                  setDateFrom(e.target.value);
+                onChange={(val) => {
+                  setDateFrom(val);
                   setActiveTab("custom");
                 }}
-                className="w-full p-2.5 rounded border border-gray-300 text-sm font-bold bg-white focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                {t("filter_end")}
-              </label>
-              <input
+              <UniversalInput
                 type="date"
+                label={t("filter_end")}
                 value={dateTo}
-                onChange={(e) => {
-                  setDateTo(e.target.value);
+                onChange={(val) => {
+                  setDateTo(val);
                   setActiveTab("custom");
                 }}
-                className="w-full p-2.5 rounded border border-gray-300 text-sm font-bold bg-white focus:ring-2 focus:ring-blue-500"
               />
             </div>
             {user?.role === "admin" || user?.role === "supervisor" ? (
@@ -163,7 +170,7 @@ export default function HistoryPage() {
                 options={[{ id: "", name: "Semua Outlet" }, ...outlets]}
               />
             ) : (
-              <div className="p-3 bg-gray-200 rounded border border-gray-300 font-bold text-gray-600 text-sm">
+              <div className="p-4 bg-stone-50 rounded-xl border border-stone-200 font-bold text-stone-700 text-sm">
                 Outlet:{" "}
                 {outlets.find((o) => o.id === user?.outlet_id)?.name ||
                   "Unknown"}
@@ -171,35 +178,37 @@ export default function HistoryPage() {
             )}
           </div>
 
-          <button
+          <Button
             onClick={fetchReports}
-            className="mt-6 w-full md:w-auto px-8 py-3 bg-blue-600 text-white font-bold rounded shadow-md hover:bg-blue-700 transition-colors"
+            variant="primary"
+            className="mt-6 w-full md:w-auto px-10 py-3.5 md:py-4 text-base"
           >
             {t("filter_apply")}
-          </button>
+          </Button>
         </Card>
 
-        {/* RESPONSIVE GRID FOR REPORTS: 1 Col Mobile, 2 Cols Desktop */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        {/* REPORTS GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
           {isLoading ? (
-            <p className="col-span-full text-center font-bold text-gray-500 py-10">
+            <p className="col-span-full text-center font-bold text-stone-500 py-10">
               {t("loading")}
             </p>
           ) : reports.length === 0 ? (
-            <p className="col-span-full text-center text-gray-500 bg-white p-8 rounded-lg shadow-sm">
-              {t("filter_no_data")}
-            </p>
+            <div className="col-span-full text-center text-stone-500 bg-white p-10 rounded-2xl border border-stone-200 shadow-sm flex flex-col items-center">
+              <span className="text-4xl block mb-3 opacity-50">📄</span>
+              <p className="font-medium text-lg">{t("filter_no_data")}</p>
+            </div>
           ) : (
             reports.map((r) => {
               const total = calculateTotalRevenue(r.sales_data || {});
               return (
                 <div
                   key={r.id}
-                  className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+                  className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 hover:shadow-md hover:border-amber-400 transition-all group"
                 >
-                  <div className="flex justify-between items-start border-b pb-3 mb-4">
+                  <div className="flex justify-between items-start border-b border-stone-100 pb-4 mb-4">
                     <div>
-                      <h3 className="font-bold text-lg md:text-xl text-gray-900">
+                      <h3 className="font-bold text-lg md:text-xl text-stone-800 group-hover:text-amber-700 transition-colors">
                         {new Date(r.report_date).toLocaleDateString("id-ID", {
                           weekday: "long",
                           year: "numeric",
@@ -207,49 +216,55 @@ export default function HistoryPage() {
                           day: "numeric",
                         })}
                       </h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                        📍{" "}
-                        <span className="font-semibold text-gray-700">
-                          {r.outlets?.name || r.outlet_type}
-                        </span>{" "}
-                        • 👤{" "}
-                        <span className="font-semibold text-gray-700">
-                          {r.app_users?.username || "Unknown"}
+                      <p className="text-sm text-stone-500 mt-2 flex flex-wrap items-center gap-2">
+                        <span className="bg-stone-50 border border-stone-200 px-2 py-0.5 rounded-md text-stone-700 font-medium">
+                          📍 {r.outlets?.name || r.outlet_type}
+                        </span>
+                        <span className="bg-stone-50 border border-stone-200 px-2 py-0.5 rounded-md text-stone-700 font-medium">
+                          👤 {r.app_users?.username || "Unknown"}
                         </span>
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs text-gray-400 block uppercase tracking-wider font-bold mb-1">
+                      <span className="text-[10px] text-stone-400 block uppercase tracking-widest font-bold mb-1">
                         Total Revenue
                       </span>
-                      <span className="font-extrabold text-green-700 text-xl">
+                      <span className="font-extrabold text-emerald-700 text-xl md:text-2xl">
                         {formatIDR(total)}
                       </span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col items-center text-center">
-                      <span className="text-xs text-gray-500 mb-1">Cash</span>
-                      <span className="font-bold text-gray-800">
+                    <div className="bg-stone-50 p-3 rounded-xl border border-stone-100 flex flex-col items-center text-center">
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400 mb-1">
+                        Cash
+                      </span>
+                      <span className="font-bold text-stone-800">
                         {formatIDR(r.sales_data?.cash)}
                       </span>
                     </div>
-                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col items-center text-center">
-                      <span className="text-xs text-gray-500 mb-1">QRIS</span>
-                      <span className="font-bold text-gray-800">
+                    <div className="bg-stone-50 p-3 rounded-xl border border-stone-100 flex flex-col items-center text-center">
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400 mb-1">
+                        QRIS
+                      </span>
+                      <span className="font-bold text-stone-800">
                         {formatIDR(r.sales_data?.qris)}
                       </span>
                     </div>
-                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col items-center text-center">
-                      <span className="text-xs text-gray-500 mb-1">Debit</span>
-                      <span className="font-bold text-gray-800">
+                    <div className="bg-stone-50 p-3 rounded-xl border border-stone-100 flex flex-col items-center text-center">
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400 mb-1">
+                        Debit
+                      </span>
+                      <span className="font-bold text-stone-800">
                         {formatIDR(r.sales_data?.debit)}
                       </span>
                     </div>
-                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col items-center text-center">
-                      <span className="text-xs text-gray-500 mb-1">Gofood</span>
-                      <span className="font-bold text-gray-800">
+                    <div className="bg-stone-50 p-3 rounded-xl border border-stone-100 flex flex-col items-center text-center">
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400 mb-1">
+                        Gofood
+                      </span>
+                      <span className="font-bold text-stone-800">
                         {formatIDR(r.sales_data?.gofood)}
                       </span>
                     </div>

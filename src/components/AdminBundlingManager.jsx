@@ -1,35 +1,56 @@
+/**
+ * @file AdminProductManager.jsx
+ * @description Master Product manager with Premium POS UI and sleek data tables.
+ */
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../utils/supabase";
 import { Card } from "./ui/Containers";
 import { UniversalInput } from "./ui/UniversalInput";
 import { Button } from "./ui/BaseComponents";
-import { formatIDR } from "../utils/closingMath";
 import { t } from "../utils/dictionary";
 
-export default function AdminBundlingManager() {
-  const [bundlings, setBundlings] = useState([]);
-  const [products, setProducts] = useState([]);
+export default function AdminProductManager() {
+  const [existingProducts, setExistingProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [baseProducts, setBaseProducts] = useState([]);
+  const [ingredientsList, setIngredientsList] = useState([]);
 
   const [editingId, setEditingId] = useState(null);
   const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [isActive, setIsActive] = useState(true);
-  const [items, setItems] = useState([{ product_id: "", qty: 1 }]);
+  const [categoryId, setCategoryId] = useState("");
+  const [sortOrder, setSortOrder] = useState(0);
+  const [isBase, setIsBase] = useState(false);
+  const [baseProductId, setBaseProductId] = useState("");
+  const [productionNotes, setProductionNotes] = useState("");
+  const [recipe, setRecipe] = useState([{ ingredient_id: "", amount: "" }]);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchData = async () => {
     const { data: prods } = await supabase
       .from("products")
+      .select("*, product_categories(name)")
+      .order("sort_order");
+    const { data: cats } = await supabase
+      .from("product_categories")
       .select("*")
-      .eq("is_active", true)
+      .order("sort_order");
+    const { data: bases } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_base", true);
+    const { data: ings } = await supabase
+      .from("ingredients")
+      .select("*")
       .order("name");
-    const { data: bunds } = await supabase
-      .from("bundlings")
-      .select("*, bundling_items(qty, products(id, name))")
-      .order("created_at", { ascending: false });
-    if (prods) setProducts(prods);
-    if (bunds) setBundlings(bunds);
+
+    if (prods) setExistingProducts(prods);
+    if (cats) setCategories(cats);
+    if (bases) setBaseProducts(bases);
+    if (ings)
+      setIngredientsList(
+        ings.map((i) => ({ id: i.id, name: `${i.name} (${i.unit})` })),
+      );
   };
 
   useEffect(() => {
@@ -37,31 +58,83 @@ export default function AdminBundlingManager() {
     fetchData();
   }, []);
 
+  const toggleActive = async (id, currentStatus) => {
+    const newStatus = currentStatus === true ? false : true;
+    await supabase
+      .from("products")
+      .update({ is_active: newStatus })
+      .eq("id", id);
+    fetchData();
+  };
+
+  const handleDelete = async (id, prodName) => {
+    if (!confirm(`Delete ${prodName} permanently?`)) return;
+    await supabase.from("products").delete().eq("id", id);
+    fetchData();
+  };
+
+  const handleEdit = async (p) => {
+    setEditingId(p.id);
+    setName(p.name);
+    setCategoryId(p.category_id || "");
+    setSortOrder(p.sort_order || 0);
+    setIsBase(p.is_base || false);
+    setBaseProductId(p.base_product_id || "");
+    setProductionNotes(p.production_notes || "");
+
+    const { data: existingRecipe } = await supabase
+      .from("gramasi_recipes")
+      .select("*")
+      .eq("product_id", p.id);
+    if (existingRecipe && existingRecipe.length > 0) {
+      setRecipe(
+        existingRecipe.map((r) => ({
+          ingredient_id: r.ingredient_id,
+          amount: r.amount_per_unit,
+        })),
+      );
+    } else {
+      setRecipe([{ ingredient_id: "", amount: "" }]);
+    }
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  };
+
   const resetForm = () => {
     setEditingId(null);
     setName("");
-    setPrice("");
-    setIsActive(true);
-    setItems([{ product_id: "", qty: 1 }]);
+    setCategoryId("");
+    setSortOrder(0);
+    setIsBase(false);
+    setBaseProductId("");
+    setProductionNotes("");
+    setRecipe([{ ingredient_id: "", amount: "" }]);
   };
 
-  const handleItemChange = (index, field, value) => {
-    const newItems = [...items];
-    newItems[index][field] = value;
-    setItems(newItems);
+  const handleRecipeChange = (index, field, value) => {
+    const newRecipe = [...recipe];
+    newRecipe[index][field] = value;
+    setRecipe(newRecipe);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    let targetBundlingId = editingId;
-    const payload = { name, price: price || 0, is_active: isActive };
+    const productPayload = {
+      name,
+      category_id: categoryId || null,
+      sort_order: sortOrder,
+      is_base: isBase,
+      base_product_id: isBase ? null : baseProductId || null,
+      production_notes: productionNotes || null,
+    };
+
+    let targetProductId = editingId;
 
     if (editingId) {
       const { error } = await supabase
-        .from("bundlings")
-        .update(payload)
+        .from("products")
+        .update(productPayload)
         .eq("id", editingId);
       if (error) {
         alert("Error: " + error.message);
@@ -69,13 +142,13 @@ export default function AdminBundlingManager() {
         return;
       }
       await supabase
-        .from("bundling_items")
+        .from("gramasi_recipes")
         .delete()
-        .eq("bundling_id", editingId);
+        .eq("product_id", editingId);
     } else {
-      const { data, error } = await supabase
-        .from("bundlings")
-        .insert([payload])
+      const { data: newProduct, error } = await supabase
+        .from("products")
+        .insert([productPayload])
         .select()
         .single();
       if (error) {
@@ -83,176 +156,239 @@ export default function AdminBundlingManager() {
         setIsLoading(false);
         return;
       }
-      targetBundlingId = data.id;
+      targetProductId = newProduct.id;
     }
 
-    const validItems = items.filter((i) => i.product_id && i.qty > 0);
-    if (validItems.length > 0) {
-      const inserts = validItems.map((i) => ({
-        bundling_id: targetBundlingId,
-        product_id: i.product_id,
-        qty: i.qty,
+    const validRecipes = recipe.filter((r) => r.ingredient_id && r.amount);
+    if (validRecipes.length > 0) {
+      const recipeInserts = validRecipes.map((r) => ({
+        product_id: targetProductId,
+        ingredient_id: r.ingredient_id,
+        amount_per_unit: r.amount,
       }));
-      await supabase.from("bundling_items").insert(inserts);
+      await supabase.from("gramasi_recipes").insert(recipeInserts);
     }
 
-    alert(editingId ? t("bndl_alert_update") : t("bndl_alert_add"));
+    alert(editingId ? "Product Updated!" : "Product Saved!");
     setIsLoading(false);
     resetForm();
     fetchData();
   };
 
-  const handleEdit = (b) => {
-    setEditingId(b.id);
-    setName(b.name);
-    setPrice(b.price);
-    setIsActive(b.is_active);
-    if (b.bundling_items && b.bundling_items.length > 0) {
-      setItems(
-        b.bundling_items.map((i) => ({
-          product_id: i.products.id,
-          qty: i.qty,
-        })),
-      );
-    } else {
-      setItems([{ product_id: "", qty: 1 }]);
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleDelete = async (id) => {
-    if (!confirm(t("bndl_alert_delete"))) return;
-    await supabase.from("bundlings").delete().eq("id", id);
-    if (editingId === id) resetForm();
-    fetchData();
-  };
-
   return (
-    <div className="space-y-8">
-      <Card
-        title={editingId ? t("bndl_title_edit") : t("bndl_title_add")}
-        subtitle={t("bndl_subtitle")}
-      >
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 bg-gray-50 p-4 rounded-lg border border-gray-200"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <UniversalInput
-              label={t("bndl_name")}
-              value={name}
-              onChange={setName}
-              required
-              placeholder={t("bndl_name_ph")}
-            />
-            <UniversalInput
-              type="number"
-              label={t("bndl_price")}
-              value={price}
-              onChange={setPrice}
-              required
-            />
-          </div>
-
-          <div className="p-4 bg-white rounded border border-gray-200 shadow-sm">
-            <h3 className="font-bold text-gray-800 mb-1">
-              {t("bndl_items_title")}
-            </h3>
-            <p className="text-xs text-gray-500 mb-4">{t("bndl_items_sub")}</p>
-            {items.map((row, index) => (
-              <div key={index} className="flex gap-2 items-end mb-3">
-                <div className="flex-1">
-                  <UniversalInput
-                    type="select"
-                    value={row.product_id}
-                    onChange={(val) =>
-                      handleItemChange(index, "product_id", val)
-                    }
-                    options={products}
-                  />
-                </div>
-                <div className="w-20">
-                  <UniversalInput
-                    type="number"
-                    placeholder={t("bndl_qty")}
-                    value={row.qty}
-                    onChange={(val) => handleItemChange(index, "qty", val)}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="danger"
-                  onClick={() => setItems(items.filter((_, i) => i !== index))}
+    <div className="space-y-10">
+      {/* PRODUCTS TABLE */}
+      <div>
+        <div className="mb-4">
+          <h2 className="text-xl font-extrabold text-stone-800">
+            {t("prod_title")}
+          </h2>
+          <p className="text-sm text-stone-500">{t("prod_subtitle")}</p>
+        </div>
+        <div className="max-h-[32rem] overflow-y-auto overflow-x-auto w-full border border-stone-200 rounded-2xl shadow-sm bg-white scrollbar-thin scrollbar-thumb-stone-200">
+          <table className="w-full text-left border-collapse min-w-[600px]">
+            <thead className="sticky top-0 bg-stone-100 shadow-sm z-10">
+              <tr className="text-xs text-stone-500 uppercase tracking-wider">
+                <th className="p-4 border-b border-stone-200 font-bold">
+                  {t("prod_col_name")}
+                </th>
+                <th className="p-4 border-b border-stone-200 font-bold">
+                  {t("prod_col_cat")}
+                </th>
+                <th className="p-4 border-b border-stone-200 font-bold text-center">
+                  {t("prod_col_status")}
+                </th>
+                <th className="p-4 border-b border-stone-200 font-bold text-right">
+                  {t("prod_col_actions")}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-100">
+              {existingProducts.map((p) => (
+                <tr
+                  key={p.id}
+                  className={`transition-colors hover:bg-stone-50 ${!p.is_active && "opacity-60 bg-stone-50"}`}
                 >
-                  X
-                </Button>
-              </div>
-            ))}
+                  <td className="p-4 font-bold text-stone-800 text-base">
+                    {p.name}
+                  </td>
+                  <td className="p-4 text-stone-600 font-medium text-sm">
+                    {p.product_categories?.name || "-"}
+                  </td>
+                  <td className="p-4 text-center">
+                    <button
+                      onClick={() => toggleActive(p.id, p.is_active)}
+                      className={`text-xs px-3 py-1.5 rounded-md font-bold transition-transform hover:scale-105 border shadow-sm ${p.is_active ? "bg-green-50 text-green-700 border-green-200" : "bg-stone-200 text-stone-600 border-stone-300"}`}
+                    >
+                      {p.is_active ? t("prod_active") : t("prod_disabled")}
+                    </button>
+                  </td>
+                  <td className="p-4 text-right space-x-4">
+                    <button
+                      onClick={() => handleEdit(p)}
+                      className="text-sm text-amber-600 hover:text-amber-700 font-bold transition-colors"
+                    >
+                      {t("btn_edit")}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p.id, p.name)}
+                      className="text-sm text-red-500 hover:text-red-700 font-bold transition-colors"
+                    >
+                      {t("btn_delete")}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <hr className="border-stone-200" />
+
+      {/* PRODUCT EDITOR FORM */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 md:p-8 border border-stone-200 rounded-[2rem] shadow-md space-y-8"
+      >
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-100 pb-4">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{editingId ? "✏️" : "➕"}</span>
+            <h2 className="text-xl md:text-2xl font-extrabold text-stone-800">
+              {editingId ? `Mengedit: ${name}` : t("prod_add_new")}
+            </h2>
+          </div>
+          {editingId && (
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setItems([...items, { product_id: "", qty: 1 }])}
+              onClick={resetForm}
+              className="border border-stone-200"
             >
-              {t("bndl_add_item")}
+              {t("btn_cancel")}
             </Button>
-          </div>
-
-          <div className="flex gap-2 justify-end">
-            {editingId && (
-              <Button type="button" variant="secondary" onClick={resetForm}>
-                {t("btn_cancel")}
-              </Button>
-            )}
-            <Button type="submit" variant="primary" isLoading={isLoading}>
-              {editingId ? t("btn_save") : t("btn_add")}
-            </Button>
-          </div>
-        </form>
-
-        <div className="space-y-3 max-h-96 overflow-y-auto mt-6">
-          {bundlings.map((b) => (
-            <div
-              key={b.id}
-              className="p-4 border rounded-xl bg-white hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              <div className="flex justify-between items-start mb-2 border-b pb-2">
-                <div>
-                  <h4 className="font-bold text-gray-800 text-lg">{b.name}</h4>
-                  <span className="text-sm font-semibold text-green-700">
-                    {formatIDR(b.price)}
-                  </span>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleEdit(b)}
-                    className="text-xs text-blue-600 font-bold hover:underline"
-                  >
-                    {t("btn_edit")}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(b.id)}
-                    className="text-xs text-red-600 font-bold hover:underline"
-                  >
-                    {t("btn_delete")}
-                  </button>
-                </div>
-              </div>
-              <ul className="list-disc pl-5 text-xs text-gray-600">
-                {b.bundling_items?.map((item, idx) => (
-                  <li key={idx}>
-                    {item.qty}x {item.products?.name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-          {bundlings.length === 0 && (
-            <p className="text-center text-gray-500 text-sm italic p-4">
-              {t("bndl_empty")}
-            </p>
           )}
         </div>
-      </Card>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <UniversalInput
+            label={t("prod_name")}
+            value={name}
+            onChange={setName}
+            required
+          />
+          <UniversalInput
+            type="select"
+            label={t("prod_cat")}
+            value={categoryId}
+            onChange={setCategoryId}
+            options={categories}
+            required
+          />
+          <UniversalInput
+            type="number"
+            label={t("prod_sort")}
+            value={sortOrder}
+            onChange={setSortOrder}
+            required
+          />
+          <UniversalInput
+            label={t("prod_notes")}
+            value={productionNotes}
+            onChange={setProductionNotes}
+          />
+        </div>
+
+        <div className="p-5 bg-stone-50 rounded-2xl border border-stone-200 shadow-inner">
+          <label className="flex items-center gap-3 cursor-pointer font-bold mb-4 text-stone-800 md:text-lg">
+            <input
+              type="checkbox"
+              checked={isBase}
+              onChange={(e) => {
+                setIsBase(e.target.checked);
+                setBaseProductId("");
+              }}
+              className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
+            />
+            {t("prod_is_base")}
+          </label>
+          {!isBase && (
+            <div className="md:w-1/2">
+              <UniversalInput
+                type="select"
+                label={t("prod_deducts_from")}
+                value={baseProductId}
+                onChange={setBaseProductId}
+                options={baseProducts}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="p-5 md:p-6 bg-white rounded-2xl border border-stone-200 shadow-sm">
+          <div className="mb-5">
+            <h3 className="font-extrabold text-stone-800 text-lg">
+              {t("prod_recipe_title")}
+            </h3>
+            <p className="text-stone-500 text-sm">{t("prod_recipe_sub")}</p>
+          </div>
+
+          {recipe.map((row, index) => (
+            <div
+              key={index}
+              className="flex flex-col sm:flex-row gap-3 items-end mb-4 p-4 bg-stone-50 rounded-xl border border-stone-200"
+            >
+              <div className="flex-1 w-full">
+                <UniversalInput
+                  type="select"
+                  label="Bahan / Ingredient"
+                  value={row.ingredient_id}
+                  onChange={(val) =>
+                    handleRecipeChange(index, "ingredient_id", val)
+                  }
+                  options={ingredientsList}
+                />
+              </div>
+              <div className="w-full sm:w-32">
+                <UniversalInput
+                  type="number"
+                  label="Amount"
+                  placeholder="0"
+                  value={row.amount}
+                  onChange={(val) => handleRecipeChange(index, "amount", val)}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="danger"
+                onClick={() => setRecipe(recipe.filter((_, i) => i !== index))}
+                className="w-full sm:w-auto mt-2 sm:mt-0 h-[50px] px-6"
+              >
+                Hapus
+              </Button>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() =>
+              setRecipe([...recipe, { ingredient_id: "", amount: "" }])
+            }
+            className="py-3 px-6 text-sm"
+          >
+            {t("prod_add_ing")}
+          </Button>
+        </div>
+
+        <Button
+          type="submit"
+          variant="primary"
+          isLoading={isLoading}
+          className="w-full py-4 text-lg font-bold shadow-lg hover:scale-[1.01] transition-transform"
+        >
+          {editingId ? t("prod_btn_update") : t("prod_btn_save")}
+        </Button>
+      </form>
     </div>
   );
 }

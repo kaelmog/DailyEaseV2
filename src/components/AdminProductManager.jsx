@@ -1,3 +1,7 @@
+/**
+ * @file AdminProductManager.jsx
+ * @description Master Product manager with Premium POS UI and sleek data tables.
+ */
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../utils/supabase";
@@ -23,10 +27,11 @@ export default function AdminProductManager() {
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchData = async () => {
+    // Sorted alphabetically by product name for easy scanning
     const { data: prods } = await supabase
       .from("products")
       .select("*, product_categories(name)")
-      .order("sort_order");
+      .order("name", { ascending: true });
     const { data: cats } = await supabase
       .from("product_categories")
       .select("*")
@@ -38,7 +43,7 @@ export default function AdminProductManager() {
     const { data: ings } = await supabase
       .from("ingredients")
       .select("*")
-      .order("name");
+      .order("name", { ascending: true });
 
     if (prods) setExistingProducts(prods);
     if (cats) setCategories(cats);
@@ -64,7 +69,7 @@ export default function AdminProductManager() {
   };
 
   const handleDelete = async (id, prodName) => {
-    if (!confirm(`Delete ${prodName} permanently?`)) return;
+    if (!confirm(`Hapus ${prodName} permanen?`)) return;
     await supabase.from("products").delete().eq("id", id);
     fetchData();
   };
@@ -165,55 +170,70 @@ export default function AdminProductManager() {
       await supabase.from("gramasi_recipes").insert(recipeInserts);
     }
 
-    alert(editingId ? "Product Updated!" : "Product Saved!");
+    alert(editingId ? "Produk Diperbarui!" : "Produk Disimpan!");
     setIsLoading(false);
     resetForm();
     fetchData();
   };
 
   return (
-    <div className="space-y-8">
-      <Card title={t("prod_title")} subtitle={t("prod_subtitle")}>
-        <div className="max-h-80 overflow-y-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="sticky top-0 bg-white shadow-sm z-10">
-              <tr className="bg-gray-100 text-sm">
-                <th className="p-2 border-b">{t("prod_col_name")}</th>
-                <th className="p-2 border-b">{t("prod_col_cat")}</th>
-                <th className="p-2 border-b text-center">
+    <div className="space-y-10">
+      {/* PRODUCTS TABLE */}
+      <div>
+        <div className="mb-4">
+          <h2 className="text-xl font-extrabold text-stone-800">
+            {t("prod_title")}
+          </h2>
+          <p className="text-sm text-stone-500">{t("prod_subtitle")}</p>
+        </div>
+        <div className="max-h-[32rem] overflow-y-auto overflow-x-auto w-full border border-stone-200 rounded-2xl shadow-sm bg-white scrollbar-thin scrollbar-thumb-stone-200">
+          <table className="w-full text-left border-collapse min-w-[600px]">
+            <thead className="sticky top-0 bg-stone-100 shadow-sm z-10">
+              <tr className="text-xs text-stone-500 uppercase tracking-wider">
+                <th className="p-4 border-b border-stone-200 font-bold">
+                  {t("prod_col_name")}
+                </th>
+                <th className="p-4 border-b border-stone-200 font-bold">
+                  {t("prod_col_cat")}
+                </th>
+                <th className="p-4 border-b border-stone-200 font-bold text-center">
                   {t("prod_col_status")}
                 </th>
-                <th className="p-2 border-b text-right">
+                <th className="p-4 border-b border-stone-200 font-bold text-right">
                   {t("prod_col_actions")}
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-stone-100">
               {existingProducts.map((p) => (
                 <tr
                   key={p.id}
-                  className={`border-b text-sm hover:bg-gray-50 ${!p.is_active && "opacity-60 bg-gray-50"}`}
+                  className={`transition-colors hover:bg-stone-50 ${!p.is_active && "opacity-60 bg-stone-50"}`}
                 >
-                  <td className="p-2 font-bold">{p.name}</td>
-                  <td className="p-2">{p.product_categories?.name || "-"}</td>
-                  <td className="p-2 text-center">
+                  <td className="p-4 font-bold text-stone-800 text-base">
+                    {p.name}
+                  </td>
+                  <td className="p-4 text-stone-600 font-medium text-sm">
+                    {p.product_categories?.name || "-"}
+                  </td>
+                  <td className="p-4 text-center">
                     <button
                       onClick={() => toggleActive(p.id, p.is_active)}
-                      className={`text-xs px-2 py-1 rounded font-bold ${p.is_active ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-700"}`}
+                      className={`text-xs px-3 py-1.5 rounded-md font-bold transition-transform hover:scale-105 border shadow-sm ${p.is_active ? "bg-green-50 text-green-700 border-green-200" : "bg-stone-200 text-stone-600 border-stone-300"}`}
                     >
                       {p.is_active ? t("prod_active") : t("prod_disabled")}
                     </button>
                   </td>
-                  <td className="p-2 text-right space-x-2">
+                  <td className="p-4 text-right space-x-4">
                     <button
                       onClick={() => handleEdit(p)}
-                      className="text-blue-600 hover:text-blue-800 font-bold px-2"
+                      className="text-sm text-amber-600 hover:text-amber-700 font-bold transition-colors"
                     >
                       {t("btn_edit")}
                     </button>
                     <button
                       onClick={() => handleDelete(p.id, p.name)}
-                      className="text-red-600 hover:text-red-800 font-bold px-2"
+                      className="text-sm text-red-500 hover:text-red-700 font-bold transition-colors"
                     >
                       {t("btn_delete")}
                     </button>
@@ -223,26 +243,35 @@ export default function AdminProductManager() {
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
 
-      <hr />
+      <hr className="border-stone-200" />
 
+      {/* PRODUCT EDITOR FORM */}
       <form
         onSubmit={handleSubmit}
-        className="space-y-6 p-4 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50"
+        className="bg-white p-6 md:p-8 border border-stone-200 rounded-[2rem] shadow-sm space-y-8"
       >
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800">
-            {editingId ? `${t("prod_editing")} ${name}` : t("prod_add_new")}
-          </h2>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-100 pb-4">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{editingId ? "✏️" : "➕"}</span>
+            <h2 className="text-xl md:text-2xl font-extrabold text-stone-800">
+              {editingId ? `Mengedit: ${name}` : t("prod_add_new")}
+            </h2>
+          </div>
           {editingId && (
-            <Button type="button" variant="ghost" onClick={resetForm}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={resetForm}
+              className="border border-stone-200 px-6 py-2"
+            >
               {t("btn_cancel")}
             </Button>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           <UniversalInput
             label={t("prod_name")}
             value={name}
@@ -271,8 +300,8 @@ export default function AdminProductManager() {
           />
         </div>
 
-        <div className="p-4 bg-white rounded border border-gray-200 shadow-sm">
-          <label className="flex items-center gap-2 cursor-pointer font-bold mb-2">
+        <div className="p-5 bg-stone-50 rounded-2xl border border-stone-200 shadow-sm">
+          <label className="flex items-center gap-3 cursor-pointer font-bold mb-4 text-stone-800 md:text-lg">
             <input
               type="checkbox"
               checked={isBase}
@@ -280,67 +309,101 @@ export default function AdminProductManager() {
                 setIsBase(e.target.checked);
                 setBaseProductId("");
               }}
-              className="w-5 h-5 text-blue-600 rounded"
+              className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
             />
             {t("prod_is_base")}
           </label>
           {!isBase && (
-            <UniversalInput
-              type="select"
-              label={t("prod_deducts_from")}
-              value={baseProductId}
-              onChange={setBaseProductId}
-              options={baseProducts}
-            />
+            <div className="md:w-1/2">
+              <UniversalInput
+                type="select"
+                label={t("prod_deducts_from")}
+                value={baseProductId}
+                onChange={setBaseProductId}
+                options={baseProducts}
+              />
+            </div>
           )}
         </div>
 
-        <Card title={t("prod_recipe_title")} subtitle={t("prod_recipe_sub")}>
-          {recipe.map((row, index) => (
-            <div key={index} className="flex gap-2 items-end mb-3">
-              <div className="flex-1">
-                <UniversalInput
-                  type="select"
-                  value={row.ingredient_id}
-                  onChange={(val) =>
-                    handleRecipeChange(index, "ingredient_id", val)
-                  }
-                  options={ingredientsList}
-                />
-              </div>
-              <div className="w-24">
-                <UniversalInput
-                  type="number"
-                  placeholder="Amt"
-                  value={row.amount}
-                  onChange={(val) => handleRecipeChange(index, "amount", val)}
-                />
-              </div>
-              <Button
-                type="button"
-                variant="danger"
-                onClick={() => setRecipe(recipe.filter((_, i) => i !== index))}
+        <div className="p-5 md:p-6 bg-white rounded-2xl border border-stone-200 shadow-sm">
+          <div className="mb-5 border-b border-stone-100 pb-3">
+            <h3 className="font-extrabold text-stone-800 text-lg">
+              {t("prod_recipe_title")}
+            </h3>
+            <p className="text-stone-500 text-sm">{t("prod_recipe_sub")}</p>
+          </div>
+
+          <div className="space-y-3 mb-5">
+            {recipe.map((row, index) => (
+              <div
+                key={index}
+                className="flex flex-col sm:flex-row gap-3 items-end p-4 bg-stone-50 rounded-xl border border-stone-200"
               >
-                X
-              </Button>
-            </div>
-          ))}
+                <div className="flex-1 w-full">
+                  <UniversalInput
+                    type="select"
+                    label="Bahan / Ingredient"
+                    value={row.ingredient_id}
+                    onChange={(val) =>
+                      handleRecipeChange(index, "ingredient_id", val)
+                    }
+                    options={ingredientsList}
+                  />
+                </div>
+                <div className="w-full sm:w-32">
+                  <UniversalInput
+                    type="number"
+                    label="Amount"
+                    placeholder="0"
+                    value={row.amount}
+                    onChange={(val) => handleRecipeChange(index, "amount", val)}
+                  />
+                </div>
+                {/* Fixed perfectly aligned Hapus button */}
+                <Button
+                  type="button"
+                  variant="danger"
+                  onClick={() =>
+                    setRecipe(recipe.filter((_, i) => i !== index))
+                  }
+                  className="w-full sm:w-[50px] h-[50px] flex items-center justify-center shrink-0"
+                >
+                  <span className="sm:hidden">Hapus</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 hidden sm:block"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </Button>
+              </div>
+            ))}
+          </div>
+
           <Button
             type="button"
-            variant="ghost"
+            variant="secondary"
             onClick={() =>
               setRecipe([...recipe, { ingredient_id: "", amount: "" }])
             }
+            className="py-3 px-6 text-sm"
           >
-            {t("prod_add_ing")}
+            + {t("prod_add_ing")}
           </Button>
-        </Card>
+        </div>
 
         <Button
           type="submit"
           variant="primary"
           isLoading={isLoading}
-          className="w-full py-3 shadow-md"
+          className="w-full py-4 text-lg font-bold shadow-md hover:scale-[1.01] transition-transform"
         >
           {editingId ? t("prod_btn_update") : t("prod_btn_save")}
         </Button>
