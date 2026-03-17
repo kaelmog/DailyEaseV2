@@ -1,0 +1,21 @@
+name: Supabase Keep-Alive Cron
+
+on:
+  schedule:
+    # Runs at 00:00 UTC every day
+    - cron: "0 0 * * *"
+  workflow_dispatch: # Allows you to run it manually from the GitHub UI if needed
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase to keep project active
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" \
+          --request GET "${SUPABASE_URL}/rest/v1/outlets?select=id&limit=1" \
+          --header "apikey: ${SUPABASE_KEY}" \
+          --header "Authorization: Bearer ${SUPABASE_KEY}"

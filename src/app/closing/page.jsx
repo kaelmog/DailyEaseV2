@@ -1,9 +1,10 @@
 /**
  * @file page.jsx (Closing Form)
- * @description Fully responsive shift closing interface, reordered for better UX flow.
+ * @description Fully responsive shift closing interface, reordered for better UX flow with updated header.
  */
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation"; // Added router for the Back button
 import { supabase } from "../../utils/supabase";
 import { useAutoSave } from "../../hooks/useAutoSave";
 import { AccordionSection, Card } from "../../components/ui/Containers";
@@ -28,6 +29,7 @@ import { t } from "../../utils/dictionary";
 
 export default function DailyClosingApp() {
   const { user } = useAuth();
+  const router = useRouter(); // Initialize router
   const [isReady, setIsReady] = useState(false);
   const [isReviewing, setIsReviewing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -393,20 +395,50 @@ export default function DailyClosingApp() {
   // ==========================================
   return (
     <div className="max-w-6xl mx-auto min-h-screen bg-gray-100 pb-36 shadow-2xl relative">
-      <div className="bg-blue-900 text-white p-6 md:p-8 shadow-md mb-6">
-        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-          {t("app_title")}
-        </h1>
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* --- REBUILT HEADER --- */}
+      <div className="bg-blue-900 text-white p-6 md:p-8 shadow-md mb-6 relative">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+            {t("app_title")}
+          </h1>
+          <button
+            onClick={() => router.push("/")}
+            className="bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm md:text-base transition-colors shadow-sm flex items-center gap-2"
+          >
+            {t("btn_back")}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <UniversalInput
-              type="select"
-              value={selectedOutletId}
-              onChange={setSelectedOutletId}
-              options={outlets.map((o) => ({ id: o.id, name: o.name }))}
-              className="text-black font-bold h-full"
-              placeholder={t("select_outlet")}
-            />
+            <label className="block text-xs font-bold text-blue-200 uppercase tracking-wider mb-1">
+              Outlet
+            </label>
+            <div className="relative">
+              <select
+                value={selectedOutletId}
+                onChange={(e) => setSelectedOutletId(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-bold bg-white shadow-inner appearance-none cursor-pointer"
+              >
+                <option value="" disabled>
+                  {t("select_outlet")}
+                </option>
+                {outlets.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.name}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                <svg
+                  className="fill-current h-4 w-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                </svg>
+              </div>
+            </div>
           </div>
           <div>
             <label className="block text-xs font-bold text-blue-200 uppercase tracking-wider mb-1">
@@ -416,11 +448,12 @@ export default function DailyClosingApp() {
               type="date"
               value={reportDate}
               onChange={(e) => setReportDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-bold bg-white shadow-inner"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-bold bg-white shadow-inner cursor-pointer"
             />
           </div>
         </div>
       </div>
+      {/* --- END HEADER --- */}
 
       {!selectedOutletId ? (
         <div className="px-4 text-center mt-10">
