@@ -1,6 +1,6 @@
 /**
  * @file page.jsx (Closing Form)
- * @description Fully responsive shift closing interface, reordered for better UX flow with Premium UI.
+ * @description Fully responsive shift closing interface, with Transaction inputs and Premium UI.
  */
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
@@ -41,12 +41,10 @@ export default function DailyClosingApp() {
   const [ingredients, setIngredients] = useState([]);
   const [recipes, setRecipes] = useState([]);
 
-  // Default to today (YYYY-MM-DD)
   const [reportDate, setReportDate] = useState(
     new Date().toISOString().split("T")[0],
   );
 
-  // Auto-Save States
   const [selectedOutletId, setSelectedOutletId, clearOutlet, outletHydrated] =
     useAutoSave("wheat_outlet_id", "");
   const [inventory, setInventory, clearInventory, invHydrated] = useAutoSave(
@@ -55,23 +53,36 @@ export default function DailyClosingApp() {
   );
   const [ingredientInv, setIngredientInv, clearIngInv, ingInvHydrated] =
     useAutoSave("wheat_ing_inv", {});
+
+  // ADDED: _trx fields for all payment methods
   const [sales, setSales, clearSales, salesHydrated] = useAutoSave(
     "wheat_sales",
     {
       cash: 0,
+      cash_trx: 0,
       qris: 0,
+      qris_trx: 0,
       credit: 0,
+      credit_trx: 0,
       debit: 0,
+      debit_trx: 0,
       grabfood: 0,
+      grabfood_trx: 0,
       gofood: 0,
+      gofood_trx: 0,
       shopeefood: 0,
+      shopeefood_trx: 0,
       transfer: 0,
+      transfer_trx: 0,
       transfer_outstanding: 0,
+      transfer_outstanding_trx: 0,
       voucher: 0,
+      voucher_trx: 0,
       expenses: 0,
       expenseNote: "",
     },
   );
+
   const [categorySales, setCategorySales, clearCatSales, catSalesHydrated] =
     useAutoSave("wheat_cat_sales", {
       croissant: 0,
@@ -116,7 +127,6 @@ export default function DailyClosingApp() {
       setIsReady(true);
     }
     loadData();
-    // eslint-disable-next-line
   }, [user]);
 
   const activeProducts = useMemo(() => {
@@ -205,6 +215,20 @@ export default function DailyClosingApp() {
       </div>
     );
   }
+
+  // --- Payment Methods Helper ---
+  const paymentMethods = [
+    { id: "cash", label: "Cash" },
+    { id: "qris", label: "QRIS" },
+    { id: "debit", label: "Debit" },
+    { id: "credit", label: "Credit" },
+    { id: "transfer", label: "Transfer" },
+    { id: "transfer_outstanding", label: "Outstanding" },
+    { id: "grabfood", label: "GrabFood" },
+    { id: "gofood", label: "GoFood" },
+    { id: "shopeefood", label: "ShopeeFood" },
+    { id: "voucher", label: "Voucher" },
+  ];
 
   // ==========================================
   // REVIEW SCREEN
@@ -395,7 +419,7 @@ export default function DailyClosingApp() {
   // ==========================================
   return (
     <div className="max-w-6xl mx-auto min-h-screen bg-stone-100 pb-36 shadow-2xl relative">
-      {/* --- PREMIUM BESPOKE HEADER --- */}
+      {/* HEADER */}
       <div className="bg-stone-900 text-stone-50 p-6 md:p-8 shadow-md mb-6 relative border-b-4 border-amber-600">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
@@ -456,7 +480,6 @@ export default function DailyClosingApp() {
           </div>
         </div>
       </div>
-      {/* --- END HEADER --- */}
 
       {!selectedOutletId ? (
         <div className="px-4 text-center mt-10">
@@ -468,76 +491,47 @@ export default function DailyClosingApp() {
         <div className="px-4 md:px-8 space-y-6">
           {/* TOP: FINANCIAL & SALES BY CATEGORY */}
           <AccordionSection title={t("financial_title")} defaultOpen={false}>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-4">
-              <UniversalInput
-                type="currency"
-                label="Cash"
-                value={sales.cash}
-                onChange={(v) => handleSalesInput("cash", v)}
-              />
-              <UniversalInput
-                type="currency"
-                label="Debit"
-                value={sales.debit}
-                onChange={(v) => handleSalesInput("debit", v)}
-              />
-              <UniversalInput
-                type="currency"
-                label="QRIS"
-                value={sales.qris}
-                onChange={(v) => handleSalesInput("qris", v)}
-              />
-              <UniversalInput
-                type="currency"
-                label="Credit"
-                value={sales.credit}
-                onChange={(v) => handleSalesInput("credit", v)}
-              />
-              <UniversalInput
-                type="currency"
-                label="Transfer"
-                value={sales.transfer}
-                onChange={(v) => handleSalesInput("transfer", v)}
-              />
-              <UniversalInput
-                type="currency"
-                label="Outstanding"
-                value={sales.transfer_outstanding}
-                onChange={(v) => handleSalesInput("transfer_outstanding", v)}
-              />
-              <UniversalInput
-                type="currency"
-                label="GrabFood"
-                value={sales.grabfood}
-                onChange={(v) => handleSalesInput("grabfood", v)}
-              />
-              <UniversalInput
-                type="currency"
-                label="GoFood"
-                value={sales.gofood}
-                onChange={(v) => handleSalesInput("gofood", v)}
-              />
-              <UniversalInput
-                type="currency"
-                label="ShopeeFood"
-                value={sales.shopeefood}
-                onChange={(v) => handleSalesInput("shopeefood", v)}
-              />
+            {/* Payment Methods with TRX Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
+              {paymentMethods.map((pm) => (
+                <div key={pm.id} className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <UniversalInput
+                      type="currency"
+                      label={pm.label}
+                      value={sales[pm.id] || 0}
+                      onChange={(v) => handleSalesInput(pm.id, v)}
+                    />
+                  </div>
+                  <div className="w-20 sm:w-24 shrink-0">
+                    <UniversalInput
+                      type="number"
+                      label="Trx"
+                      value={sales[`${pm.id}_trx`] || 0}
+                      onChange={(v) => handleSalesInput(`${pm.id}_trx`, v)}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Expenses */}
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pt-4 border-t border-stone-100">
               <UniversalInput
                 type="currency"
                 label="Expenses"
                 value={sales.expenses}
                 onChange={(v) => handleSalesInput("expenses", v)}
               />
-            </div>
-            <UniversalInput
-              label={t("expense_notes")}
-              placeholder={t("expense_placeholder")}
-              value={sales.expenseNote}
-              onChange={(v) => handleSalesInput("expenseNote", v)}
-              className="mb-4"
-            />
-            <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl text-center font-extrabold text-stone-800 text-xl md:text-2xl shadow-inner">
+              <UniversalInput
+                label={t("expense_notes")}
+                placeholder={t("expense_placeholder")}
+                value={sales.expenseNote}
+                onChange={(v) => handleSalesInput("expenseNote", v)}
+              />
+            </div> */}
+
+            <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl text-center font-extrabold text-stone-800 text-xl md:text-2xl shadow-inner mt-4">
               {t("total_revenue")} {formatIDR(totalRevenue)}
             </div>
           </AccordionSection>
@@ -595,7 +589,7 @@ export default function DailyClosingApp() {
             </div>
           </AccordionSection>
 
-          {/* SECOND: PRODUCT CATEGORIES (Bread, Pastry, etc.) */}
+          {/* SECOND: PRODUCT CATEGORIES */}
           {categories.map((cat) => {
             const catProducts = activeProducts.filter(
               (p) => p.category_id === cat.id,

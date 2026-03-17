@@ -1,40 +1,31 @@
 /**
  * @file AdminProductForm.jsx
- * @description Standalone form to add/edit products and their recipes (Premium UI).
+ * @description Standalone form to add/edit products and their recipes (i18n, Premium UI, Mobile Optimized).
  */
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../utils/supabase";
-import { Card } from "./ui/Containers";
 import { UniversalInput } from "./ui/UniversalInput";
 import { Button } from "./ui/BaseComponents";
+import { t } from "../utils/dictionary";
 
 export default function AdminProductForm() {
-  // --- Form State ---
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [sortOrder, setSortOrder] = useState(0);
-
-  // Shaping State
   const [isBase, setIsBase] = useState(false);
   const [baseProductId, setBaseProductId] = useState("");
-
-  // Specs State
   const [proofingTime, setProofingTime] = useState("");
   const [bakingTime, setBakingTime] = useState("");
   const [bakingTemp, setBakingTemp] = useState("");
   const [productionNotes, setProductionNotes] = useState("");
-
-  // Recipe State (Gramasi)
   const [recipe, setRecipe] = useState([{ ingredient_id: "", amount: "" }]);
 
-  // --- Dropdown Data ---
   const [categories, setCategories] = useState([]);
   const [baseProducts, setBaseProducts] = useState([]);
   const [ingredientsList, setIngredientsList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch initial data
   useEffect(() => {
     async function fetchData() {
       const { data: cats } = await supabase
@@ -49,7 +40,7 @@ export default function AdminProductForm() {
       const { data: ings } = await supabase
         .from("ingredients")
         .select("id, name, unit")
-        .order("name", { ascending: true }); // Alphabetical sorting for fillings
+        .order("name", { ascending: true });
 
       if (cats) setCategories(cats);
       if (bases) setBaseProducts(bases);
@@ -61,7 +52,6 @@ export default function AdminProductForm() {
     fetchData();
   }, []);
 
-  // --- Handlers ---
   const handleRecipeChange = (index, field, value) => {
     const newRecipe = [...recipe];
     newRecipe[index][field] = value;
@@ -72,7 +62,6 @@ export default function AdminProductForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    // 1. Insert Product
     const { data: newProduct, error: productError } = await supabase
       .from("products")
       .insert([
@@ -92,12 +81,11 @@ export default function AdminProductForm() {
       .single();
 
     if (productError) {
-      alert("Error saving product: " + productError.message);
+      alert(t("prod_alert_error") + productError.message);
       setIsLoading(false);
       return;
     }
 
-    // 2. Insert Gramasi Recipe (if valid rows exist)
     const validRecipes = recipe.filter((r) => r.ingredient_id && r.amount);
     if (validRecipes.length > 0) {
       const recipeInserts = validRecipes.map((r) => ({
@@ -105,14 +93,12 @@ export default function AdminProductForm() {
         ingredient_id: r.ingredient_id,
         amount_per_unit: r.amount,
       }));
-
       await supabase.from("gramasi_recipes").insert(recipeInserts);
     }
 
-    alert("Product successfully mapped and saved!");
+    alert(t("prod_alert_mapped"));
     setIsLoading(false);
 
-    // Reset form to blank
     setName("");
     setCategoryId("");
     setSortOrder(0);
@@ -130,27 +116,25 @@ export default function AdminProductForm() {
       <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-stone-200">
         <div className="mb-6 border-b border-stone-100 pb-4">
           <h2 className="text-2xl font-extrabold text-stone-800">
-            Tambah Produk Baru
+            {t("prod_form_title")}
           </h2>
-          <p className="text-stone-500">
-            Masukkan detail produk dan resep gramasi.
-          </p>
+          <p className="text-stone-500">{t("prod_form_sub")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
           <div className="lg:col-span-2">
             <UniversalInput
-              label="Nama Produk"
+              label={t("prod_name")}
               value={name}
               onChange={setName}
               required
-              placeholder="e.g., Almond Croissant"
+              placeholder={t("prod_name_ph")}
             />
           </div>
           <div className="lg:col-span-2">
             <UniversalInput
               type="select"
-              label="Kategori"
+              label={t("prod_cat")}
               value={categoryId}
               onChange={setCategoryId}
               options={categories}
@@ -160,7 +144,7 @@ export default function AdminProductForm() {
           <div className="lg:col-span-1">
             <UniversalInput
               type="number"
-              label="Urutan Tampil"
+              label={t("prod_sort")}
               value={sortOrder}
               onChange={setSortOrder}
               required
@@ -168,15 +152,14 @@ export default function AdminProductForm() {
           </div>
           <div className="lg:col-span-3">
             <UniversalInput
-              label="Catatan Produksi"
+              label={t("prod_notes")}
               value={productionNotes}
               onChange={setProductionNotes}
-              placeholder="Opsional..."
+              placeholder={t("prod_notes_ph")}
             />
           </div>
         </div>
 
-        {/* Shaping Logic Block */}
         <div className="p-5 bg-stone-50 rounded-2xl border border-stone-200 shadow-sm mb-8">
           <label className="flex items-center gap-3 cursor-pointer font-bold mb-4 text-stone-800 md:text-lg">
             <input
@@ -188,94 +171,85 @@ export default function AdminProductForm() {
               }}
               className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
             />
-            Ini ADALAH Produk Base (Menghasilkan Stok Sisa / Raw)
+            {t("prod_is_base_label")}
           </label>
 
           {!isBase && (
             <div className="md:w-1/2 mt-2">
               <UniversalInput
                 type="select"
-                label="Mengurangi Stok Dari (Shaping):"
+                label={t("prod_deducts_from")}
                 value={baseProductId}
                 onChange={setBaseProductId}
                 options={baseProducts}
-                placeholder="Pilih Base (Opsional)..."
+                placeholder={t("prod_deducts_ph")}
               />
             </div>
           )}
         </div>
 
-        {/* Specs Block */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <UniversalInput
             type="number"
-            label="Proofing (Menit)"
+            label={t("prod_proof_min")}
             value={proofingTime}
             onChange={setProofingTime}
           />
           <UniversalInput
             type="number"
-            label="Baking (Menit)"
+            label={t("prod_bake_min")}
             value={bakingTime}
             onChange={setBakingTime}
           />
           <UniversalInput
             type="number"
-            label="Temp (°C)"
+            label={t("prod_bake_temp")}
             value={bakingTemp}
             onChange={setBakingTemp}
           />
         </div>
 
-        {/* Recipe Block */}
-        <div className="p-5 md:p-6 bg-stone-50 rounded-2xl border border-stone-200 shadow-inner">
-          <div className="mb-5 border-b border-stone-200 pb-3">
-            <h3 className="font-extrabold text-stone-800 text-lg">
-              Resep Gramasi
-            </h3>
-            <p className="text-stone-500 text-sm">
-              Bahan baku yang digunakan per 1 unit produksi
-            </p>
+        {/* MOBILE OPTIMIZED RECIPE BLOCK */}
+        <div className="p-4 md:p-6 bg-stone-50 rounded-2xl border border-stone-200 shadow-inner">
+          <div className="mb-5 border-b border-stone-200 pb-3 flex justify-between items-center">
+            <div>
+              <h3 className="font-extrabold text-stone-800 text-lg">
+                {t("prod_recipe_title")}
+              </h3>
+              <p className="text-stone-500 text-sm hidden sm:block">
+                {t("prod_recipe_sub")}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() =>
+                setRecipe([...recipe, { ingredient_id: "", amount: "" }])
+              }
+              className="text-sm px-4 py-2 h-auto bg-white shadow-sm"
+            >
+              + Bahan
+            </Button>
           </div>
 
-          <div className="space-y-3 mb-5">
+          <div className="space-y-4 mb-2">
             {recipe.map((row, index) => (
               <div
                 key={index}
-                className="flex flex-col sm:flex-row gap-3 items-end p-4 bg-white rounded-xl border border-stone-200 shadow-sm"
+                className="relative p-4 md:p-5 bg-white rounded-xl border border-stone-200 shadow-sm"
               >
-                <div className="flex-1 w-full">
-                  <UniversalInput
-                    type="select"
-                    label={index === 0 ? "Bahan / Ingredient" : ""}
-                    value={row.ingredient_id}
-                    onChange={(val) =>
-                      handleRecipeChange(index, "ingredient_id", val)
-                    }
-                    options={ingredientsList}
-                  />
-                </div>
-                <div className="w-full sm:w-32">
-                  <UniversalInput
-                    type="number"
-                    label={index === 0 ? "Amount" : ""}
-                    value={row.amount}
-                    onChange={(val) => handleRecipeChange(index, "amount", val)}
-                  />
-                </div>
-                {/* Fixed perfectly aligned Hapus button */}
-                <Button
+                {/* Floating Trash Icon */}
+                <button
                   type="button"
-                  variant="danger"
                   onClick={() =>
                     setRecipe(recipe.filter((_, i) => i !== index))
                   }
-                  className="w-full sm:w-[50px] h-[50px] flex items-center justify-center shrink-0"
+                  className="absolute top-2 right-2 p-2 text-stone-300 hover:text-red-500 transition-colors"
+                  title="Hapus"
                 >
-                  <span className="sm:hidden">Hapus</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 hidden sm:block"
+                    className="h-6 w-6"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -285,21 +259,34 @@ export default function AdminProductForm() {
                       clipRule="evenodd"
                     />
                   </svg>
-                </Button>
+                </button>
+
+                <div className="flex flex-col md:flex-row gap-4 mt-2 pr-6">
+                  <div className="flex-1">
+                    <UniversalInput
+                      type="select"
+                      label={t("prod_ing_label")}
+                      value={row.ingredient_id}
+                      onChange={(val) =>
+                        handleRecipeChange(index, "ingredient_id", val)
+                      }
+                      options={ingredientsList}
+                    />
+                  </div>
+                  <div className="w-full md:w-32">
+                    <UniversalInput
+                      type="number"
+                      label={t("prod_amount_label")}
+                      value={row.amount}
+                      onChange={(val) =>
+                        handleRecipeChange(index, "amount", val)
+                      }
+                    />
+                  </div>
+                </div>
               </div>
             ))}
           </div>
-
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() =>
-              setRecipe([...recipe, { ingredient_id: "", amount: "" }])
-            }
-            className="py-3 px-6 text-sm bg-white"
-          >
-            + Tambah Bahan
-          </Button>
         </div>
       </div>
 
@@ -309,7 +296,7 @@ export default function AdminProductForm() {
         isLoading={isLoading}
         className="w-full py-4 text-lg font-bold shadow-lg hover:scale-[1.01] transition-transform"
       >
-        Simpan Produk Baru
+        {t("prod_btn_save")}
       </Button>
     </form>
   );
