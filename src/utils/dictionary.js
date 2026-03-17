@@ -23,7 +23,7 @@ export const dict = {
 
     // --- APP HEADER ---
     app_title: "DailyEase",
-    app_subtitle: "Closing ga harus ribet ;)",
+    app_subtitle: "Say goodbye to salah ngitung closingan 👋",
     select_outlet: "-- Pilih Outlet --",
     select_prompt: "Pilih outlet di atas untuk mulai pembukuan.",
     outlet_name: "Nama Outlet",

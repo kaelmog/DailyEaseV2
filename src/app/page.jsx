@@ -84,9 +84,9 @@ export default function Dashboard() {
           </div>
 
           <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-stone-200">
-            <h2 className="text-xl font-bold text-stone-800 mb-6 text-center">
+            {/* <h2 className="text-xl font-bold text-stone-800 mb-6 text-center">
               {t("login_title")}
-            </h2>
+            </h2> */}
 
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-bold rounded-xl text-center">
