@@ -225,7 +225,18 @@ export const dict = {
     prod_add_ing: "Tambah Bahan",
     prod_btn_save: "Simpan Produk Baru",
     prod_alert_mapped: "Produk berhasil disimpan!",
-    prod_alert_error: "Gagal menyimpan produk: ",
+    prod_alert_error: "Gagal menyimpan produk: ", // --- KNOWLEDGE BASE ---
+    dash_knowledge: "Product Knowledge",
+    dash_knowledge_sub: "Lihat resep, gramasi, & spesifikasi dapur.",
+    knowledge_title: "Buku Resep & SOP",
+    knowledge_search_ph: "Cari nama produk...",
+    knowledge_empty: "Produk tidak ditemukan.",
+    knowledge_specs: "Spesifikasi Dapur",
+    knowledge_recipe: "Resep Gramasi",
+    knowledge_notes: "Catatan Produksi",
+    knowledge_proofing: "Proofing",
+    knowledge_baking: "Baking",
+    knowledge_temp: "Suhu",
   },
   en: {
     // --- GENERAL ---
@@ -448,6 +459,18 @@ export const dict = {
     prod_btn_save: "Save Product",
     prod_alert_mapped: "Product successfully saved!",
     prod_alert_error: "Error saving product: ",
+    // --- KNOWLEDGE BASE ---
+    dash_knowledge: "Product Knowledge",
+    dash_knowledge_sub: "View recipes, gramasi, & kitchen specs.",
+    knowledge_title: "Recipe & SOP Book",
+    knowledge_search_ph: "Search product name...",
+    knowledge_empty: "No products found.",
+    knowledge_specs: "Kitchen Specs",
+    knowledge_recipe: "Gramasi Recipe",
+    knowledge_notes: "Production Notes",
+    knowledge_proofing: "Proofing",
+    knowledge_baking: "Baking",
+    knowledge_temp: "Temp",
   },
 };
 

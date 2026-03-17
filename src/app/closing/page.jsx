@@ -418,7 +418,7 @@ export default function DailyClosingApp() {
   // INPUT SCREEN
   // ==========================================
   return (
-    <div className="max-w-6xl mx-auto min-h-screen bg-stone-100 pb-36 shadow-2xl relative">
+    <div className="max-w-6xl mx-auto min-h-screen bg-stone-100 pb-25 shadow-2xl relative">
       {/* HEADER */}
       <div className="bg-stone-900 text-stone-50 p-6 md:p-8 shadow-md mb-6 relative border-b-4 border-amber-600">
         <div className="flex justify-between items-center mb-6">
@@ -861,7 +861,7 @@ export default function DailyClosingApp() {
 
       {/* Floating Footer */}
       {selectedOutletId && (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-6xl bg-stone-100/90 backdrop-blur-md border-t border-stone-200 p-4 md:p-6 flex flex-col gap-3 shadow-[0_-10px_20px_-5px_rgba(28,25,23,0.05)] z-50">
+        <div className="mt-4 w-full max-w-6xl bg-stone-100/90 backdrop-blur-md border-t border-stone-200 p-4 md:p-6 flex flex-col gap-3 shadow-[0_-10px_20px_-5px_rgba(28,25,23,0.05)] z-50">
           <Button
             variant="secondary"
             onClick={() => setIsReviewing(true)}
