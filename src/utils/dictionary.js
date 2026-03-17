@@ -28,6 +28,7 @@ export const dict = {
     select_prompt: "Pilih outlet di atas untuk mulai pembukuan.",
     outlet_name: "Nama Outlet",
     date_label: "Tanggal Laporan",
+    login_subtitle: "Say goodbye to salah ngitung closingan 👋",
 
     // --- ACCORDION TITLES ---
     financial_title: "💰 Sales Report Closing",
@@ -37,7 +38,7 @@ export const dict = {
     display_book: "🏪 Buku Display",
     live_display_title: "🏪 Sisa Display",
     live_frozen_title: "❄️ Sisa Frozen",
-    gramasi_title: "⚖️ Pemakaian Bahan (Gramasi)",
+    gramasi_title: "⚖️ Pemakaian Bahan",
 
     // --- REVIEW SCREEN ---
     review_title: "Review & Share",
@@ -106,8 +107,8 @@ export const dict = {
     prod_col_actions: "Aksi",
     prod_active: "Aktif",
     prod_disabled: "Nonaktif",
-    prod_add_new: "➕ Tambah Produk Baru",
-    prod_editing: "✏️ Mengedit:",
+    prod_add_new: "Tambah Produk Baru",
+    prod_editing: "Mengedit:",
     prod_name: "Nama Produk",
     prod_cat: "Kategori",
     prod_sort: "Urutan",
@@ -192,7 +193,7 @@ export const dict = {
     filter_end: "Sampai Tanggal",
     filter_no_data: "Tidak ada laporan ditemukan.",
     // --- LOGIN & DASHBOARD ---
-    login_title: "Login Dashboard",
+    login_title: "Masuk",
     login_err_invalid: "Username atau Password salah.",
     login_user_label: "Username",
     login_user_ph: "Masukkan username...",
@@ -328,8 +329,8 @@ export const dict = {
     prod_col_actions: "Actions",
     prod_active: "Active",
     prod_disabled: "Disabled",
-    prod_add_new: "➕ Add New Product",
-    prod_editing: "✏️ Editing:",
+    prod_add_new: "Add New Product",
+    prod_editing: "Editing:",
     prod_name: "Product Name",
     prod_cat: "Category",
     prod_sort: "Sort Order",

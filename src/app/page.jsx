@@ -1,9 +1,9 @@
 /**
  * @file page.jsx (Landing Page & Login)
- * @description Standard Username/Password Login and Role-based dashboard with Premium UI.
+ * @description Standard Username/Password Login and Role-based dashboard with Premium UI & i18n.
  */
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../utils/supabase";
 import { useAuth } from "../components/AuthProvider";
@@ -20,6 +20,20 @@ export default function Dashboard() {
   const [loginPin, setLoginPin] = useState("");
   const [error, setError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // --- EASTER EGG STATE ---
+  const [showSpecialIntro, setShowSpecialIntro] = useState(false);
+
+  // Check for the special user on mount
+  useEffect(() => {
+    if (user && user.username.toLowerCase() === "ralismee") {
+      // eslint-disable-next-line
+      setShowSpecialIntro(true);
+      // Hide the sweet intro after 2.5 seconds
+      const timer = setTimeout(() => setShowSpecialIntro(false), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -38,7 +52,7 @@ export default function Dashboard() {
     setIsLoggingIn(false);
 
     if (fetchError || !data) {
-      setError("Username atau Password salah.");
+      setError(t("login_err_invalid"));
       setLoginPin(""); // Clear password on fail
     } else {
       // Save session to local storage and reload so AuthProvider catches it
@@ -62,16 +76,16 @@ export default function Dashboard() {
           <div className="text-center mb-8">
             <span className="text-5xl mb-4 block">🌾</span>
             <h1 className="text-3xl md:text-4xl font-extrabold text-stone-900 tracking-tight">
-              The Wheat
+              {t("app_title")}
             </h1>
             <p className="text-stone-500 font-medium mt-1">
-              Sistem Laporan & POS
+              {t("app_subtitle")}
             </p>
           </div>
 
           <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-stone-200">
             <h2 className="text-xl font-bold text-stone-800 mb-6 text-center">
-              Login Dashboard
+              {t("login_title")}
             </h2>
 
             {error && (
@@ -82,19 +96,19 @@ export default function Dashboard() {
 
             <form onSubmit={handleLogin} className="space-y-5">
               <UniversalInput
-                label="Username"
+                label={t("login_user_label")}
                 value={loginUsername}
                 onChange={setLoginUsername}
                 required
-                placeholder="Masukkan username..."
+                placeholder={t("login_user_ph")}
               />
               <UniversalInput
                 type="password"
-                label="Password / PIN"
+                label={t("login_pin_label")}
                 value={loginPin}
                 onChange={setLoginPin}
                 required
-                placeholder="••••••••"
+                placeholder={t("login_pin_ph")}
               />
               <Button
                 type="submit"
@@ -102,10 +116,29 @@ export default function Dashboard() {
                 isLoading={isLoggingIn}
                 className="w-full py-4 text-lg mt-4 shadow-md"
               >
-                Masuk
+                {t("login_btn")}
               </Button>
             </form>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // EASTER EGG VIEW: SWEET LOADING SCREEN
+  // ==========================================
+  if (showSpecialIntro) {
+    return (
+      <div className="min-h-screen bg-stone-900 flex flex-col items-center justify-center p-4">
+        <div className="text-center animate-pulse">
+          <span className="text-6xl mb-6 block">🌹</span>
+          <h1 className="text-3xl md:text-5xl font-extrabold text-pink-400 tracking-tight mb-2">
+            Halo Sayang...
+          </h1>
+          <p className="text-stone-400 text-lg font-medium">
+            Semangat closingan hari ini ya! 💖
+          </p>
         </div>
       </div>
     );
@@ -124,7 +157,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-2">
               <span className="text-2xl">🌾</span>
               <span className="text-amber-500 font-bold tracking-widest text-xs md:text-sm">
-                THE WHEAT POS
+                {t("app_title")}
               </span>
             </div>
             {/* The Fully Responsive Logout Button */}
@@ -132,7 +165,7 @@ export default function Dashboard() {
               onClick={handleLogout}
               className="bg-stone-800 hover:bg-red-900/80 text-stone-300 hover:text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors shadow-sm flex items-center gap-2"
             >
-              <span className="hidden md:inline">Logout</span>
+              <span className="hidden md:inline">{t("dash_logout")}</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4"
@@ -152,7 +185,9 @@ export default function Dashboard() {
 
           <div className="text-center md:text-left">
             <h1 className="text-3xl md:text-5xl font-extrabold mb-3 text-white tracking-tight">
-              Hello, {user.username}!
+              {user.username.toLowerCase() === "ralismee"
+                ? "Halo, Sayang 💖"
+                : `Halo, ${user.username.toUpperCase()}!`}
             </h1>
             <p className="text-stone-400 text-lg md:text-xl">
               {t("dash_subtitle")}
